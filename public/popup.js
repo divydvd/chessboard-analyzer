@@ -73,10 +73,25 @@ function initializeUI() {
   });
   
   analyzeOnLichess.addEventListener('click', () => {
-    chrome.runtime.sendMessage({
-      action: 'analyzePGN',
-      pgn: currentPgn
-    });
+    if (!currentPgn) return;
+    
+    const lichessImportURL = "https://lichess.org/analysis/paste";
+    
+    // Create a hidden form to submit the PGN to Lichess
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = lichessImportURL;
+    form.target = '_blank';
+    
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'pgn';
+    input.value = currentPgn;
+    
+    form.appendChild(input);
+    document.body.appendChild(form);
+    form.submit();
+    document.body.removeChild(form);
   });
   
   tryAgain.addEventListener('click', () => {
@@ -91,16 +106,20 @@ function processImageFile(file) {
   reader.onload = (e) => {
     const base64Image = e.target.result.split(',')[1];
     
-    chrome.runtime.sendMessage({
-      action: 'analyzeImage',
-      image: base64Image
-    }, response => {
-      if (response.success) {
-        showResultState(response.pgn);
-        addToHistory(response.pgn);
-        updateUsageCount(true);
+    // Get API config from Chrome storage
+    chrome.storage.local.get(['provider', 'apiKey'], (config) => {
+      if (!config.provider || !config.apiKey) {
+        showErrorState('API configuration missing. Please go to settings and set up your API keys.');
+        return;
+      }
+      
+      // Process with selected AI provider
+      if (config.provider === 'deepseek') {
+        processWithDeepseek(base64Image, config.apiKey);
+      } else if (config.provider === 'openai') {
+        processWithOpenAI(base64Image, config.apiKey);
       } else {
-        showErrorState(response.error || 'Failed to analyze image');
+        showErrorState('Invalid AI provider selected');
       }
     });
   };
@@ -110,6 +129,139 @@ function processImageFile(file) {
   };
   
   reader.readAsDataURL(file);
+}
+
+function processWithDeepseek(base64Image, apiKey) {
+  fetch("https://api.deepseek.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${apiKey}`
+    },
+    body: JSON.stringify({
+      model: "deepseek-vision",
+      messages: [
+        {
+          role: "user",
+          content: [
+            { type: "text", text: createChessPrompt() },
+            { type: "image_url", image_url: { url: `data:image/jpeg;base64,${base64Image}` } }
+          ]
+        }
+      ],
+      temperature: 0.1,
+      max_tokens: 1000
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.error) {
+      throw new Error(data.error.message || 'DeepSeek API error');
+    }
+    
+    const pgn = extractPGNFromResponse(data.choices[0].message.content);
+    if (!pgn) {
+      throw new Error('Could not extract valid PGN from response');
+    }
+    
+    showResultState(pgn);
+    addToHistory(pgn);
+    updateUsageCount(true);
+  })
+  .catch(error => {
+    console.error('DeepSeek API error:', error);
+    showErrorState(error.message || 'Failed to analyze image with DeepSeek');
+  });
+}
+
+function processWithOpenAI(base64Image, apiKey) {
+  fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${apiKey}`
+    },
+    body: JSON.stringify({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: "You are a chess position analyzer that identifies positions from images and returns only valid PGN notation."
+        },
+        {
+          role: "user", 
+          content: [
+            { type: "text", text: createChessPrompt() },
+            { type: "image_url", image_url: { url: `data:image/jpeg;base64,${base64Image}` } }
+          ]
+        }
+      ],
+      max_tokens: 1000
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.error) {
+      throw new Error(data.error.message || 'OpenAI API error');
+    }
+    
+    const pgn = extractPGNFromResponse(data.choices[0].message.content);
+    if (!pgn) {
+      throw new Error('Could not extract valid PGN from response');
+    }
+    
+    showResultState(pgn);
+    addToHistory(pgn);
+    updateUsageCount(true);
+  })
+  .catch(error => {
+    console.error('OpenAI API error:', error);
+    showErrorState(error.message || 'Failed to analyze image with OpenAI');
+  });
+}
+
+function createChessPrompt() {
+  return `
+  Analyze this chessboard image and provide the exact position in PGN (Portable Game Notation) format.
+  Only output the valid PGN notation with no additional text or explanations.
+  If the board orientation is ambiguous, assume White is playing from the bottom.
+  Include FEN notation if you can determine it.
+  Be precise about piece positions, especially for similar-looking pieces like knights and pawns.
+  `;
+}
+
+function extractPGNFromResponse(response) {
+  // Try to extract PGN notation from text
+  // Look for common PGN format patterns
+  
+  // First, check if response contains [Event or [Site which typically start PGN
+  if (response.includes("[Event") || response.includes("[Site")) {
+    // Try to extract the complete PGN block
+    const pgnMatch = response.match(/\[\s*Event.*?\s*(?:\d+\.\s*\S+\s+\S+\s*)+(?:\*|1-0|0-1|1\/2-1\/2)/s);
+    if (pgnMatch) return pgnMatch[0].trim();
+  }
+  
+  // If we can't find standard PGN format, try looking for FEN notation
+  const fenMatch = response.match(/([rnbqkpRNBQKP1-8]+\/){7}[rnbqkpRNBQKP1-8]+\s[wb]\s[KQkq-]+\s[a-h\-][1-8\-]/);
+  if (fenMatch) {
+    // Convert FEN to minimal PGN
+    return `[SetUp "1"]\n[FEN "${fenMatch[0]}"]\n\n*`;
+  }
+  
+  // If all else fails, just return the response as-is if it seems to contain chess notation
+  if (response.match(/\d+\.\s*[KQRBNP]?[a-h]?[1-8]?x?[a-h][1-8]/)) {
+    return response.trim();
+  }
+  
+  // Handle case where the API might have wrapped the PGN in code blocks
+  if (response.includes("```")) {
+    const codeBlockMatch = response.match(/```(?:pgn)?\s*([\s\S]*?)```/);
+    if (codeBlockMatch && codeBlockMatch[1]) {
+      return codeBlockMatch[1].trim();
+    }
+  }
+  
+  return response.trim(); // Return the full response as a fallback
 }
 
 function showInitialState() {

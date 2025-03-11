@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import { ChevronRight, Send, Image, Grid3X3, Upload, Download, ExternalLink, Settings, Flag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Link } from 'react-router-dom';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 const Index = () => {
   return (
@@ -16,7 +18,10 @@ const Index = () => {
         <div className="flex items-center space-x-4">
           <a href="#features" className="text-sm hover:text-primary transition-colors">Features</a>
           <a href="#how-it-works" className="text-sm hover:text-primary transition-colors">How It Works</a>
-          <Button className="bg-primary text-primary-foreground">Install Extension</Button>
+          <Link to="/analyze">
+            <Button className="bg-primary text-primary-foreground">Try Analyzer</Button>
+          </Link>
+          <ThemeToggle />
         </div>
       </header>
 
@@ -39,9 +44,11 @@ const Index = () => {
             allowing instant analysis on Lichess with just a click.
           </p>
           <div className="flex space-x-4">
-            <Button className="bg-primary text-primary-foreground px-6 py-2 rounded-lg">
-              Get Started <ChevronRight className="h-4 w-4 ml-1" />
-            </Button>
+            <Link to="/analyze">
+              <Button className="bg-primary text-primary-foreground px-6 py-2 rounded-lg">
+                Try Now <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            </Link>
             <Button variant="outline" className="border-border">
               Watch Demo
             </Button>
@@ -64,7 +71,7 @@ const Index = () => {
                 <div className="w-2.5 h-2.5 rounded-full bg-muted"></div>
                 <div className="w-2.5 h-2.5 rounded-full bg-muted"></div>
               </div>
-              <div className="h-6 flex-1 bg-white rounded-md text-xs flex items-center justify-center text-muted-foreground">
+              <div className="h-6 flex-1 bg-card rounded-md text-xs flex items-center justify-center text-muted-foreground">
                 chrome-extension://chessboard-analyzer
               </div>
             </div>
@@ -187,13 +194,15 @@ const Index = () => {
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-3xl font-bold mb-6">Ready to Analyze Chess Positions?</h2>
           <p className="text-muted-foreground mb-8">
-            Install the ChessVision extension and start transforming chessboard images into playable positions.
+            Try ChessVision now and start transforming chessboard images into playable positions.
           </p>
-          <Button className="bg-primary text-primary-foreground px-8 py-6 rounded-lg text-lg">
-            Install Chrome Extension
-          </Button>
+          <Link to="/analyze">
+            <Button className="bg-primary text-primary-foreground px-8 py-6 rounded-lg text-lg">
+              Try Analyzer Now
+            </Button>
+          </Link>
           <p className="mt-4 text-xs text-muted-foreground">
-            Available for Google Chrome. Firefox and Edge versions coming soon.
+            Available as a web app and Chrome extension.
           </p>
         </div>
       </section>

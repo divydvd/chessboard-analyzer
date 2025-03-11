@@ -1,0 +1,77 @@
+
+import React, { useState } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ImageAnalyzer } from '@/components/ImageAnalyzer';
+import { APISettings } from '@/components/APISettings';
+import { motion } from 'framer-motion';
+import { ChevronLeft, Settings, Grid3X3 } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { ThemeToggle } from '@/components/ThemeToggle';
+
+const Analyze = () => {
+  return (
+    <div className="min-h-screen bg-background text-foreground">
+      <header className="w-full px-8 py-6 flex justify-between items-center glass-morphism fixed top-0 z-50">
+        <div className="flex items-center space-x-2">
+          <Link to="/" className="flex items-center space-x-2">
+            <Grid3X3 className="h-6 w-6" />
+            <h1 className="text-xl font-medium">ChessVision</h1>
+          </Link>
+        </div>
+        <div className="flex items-center space-x-4">
+          <Link to="/" className="text-sm hover:text-primary transition-colors">
+            <ChevronLeft className="h-4 w-4 inline mr-1" />
+            Back to Home
+          </Link>
+          <ThemeToggle />
+        </div>
+      </header>
+
+      <main className="pt-32 pb-20 px-8 max-w-4xl mx-auto">
+        <motion.div 
+          className="flex flex-col items-center"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <h1 className="text-3xl font-bold mb-6 text-center">Chess Position Analyzer</h1>
+          <p className="text-lg text-muted-foreground max-w-2xl mb-10 text-center">
+            Upload a chess position image and get instant PGN notation for analysis
+          </p>
+
+          <Tabs defaultValue="analyze" className="w-full max-w-md">
+            <TabsList className="grid grid-cols-2 mb-8">
+              <TabsTrigger value="analyze">Analyze Position</TabsTrigger>
+              <TabsTrigger value="settings">API Settings</TabsTrigger>
+            </TabsList>
+            <TabsContent value="analyze">
+              <ImageAnalyzer />
+            </TabsContent>
+            <TabsContent value="settings">
+              <APISettings />
+            </TabsContent>
+          </Tabs>
+        </motion.div>
+      </main>
+
+      <footer className="py-10 px-8 border-t border-border">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center">
+          <div className="flex items-center space-x-2 mb-4 md:mb-0">
+            <Grid3X3 className="h-5 w-5" />
+            <span className="font-medium">ChessVision</span>
+          </div>
+          <div className="flex space-x-6">
+            <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Privacy</a>
+            <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Terms</a>
+            <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Contact</a>
+          </div>
+          <div className="mt-4 md:mt-0 text-sm text-muted-foreground">
+            © 2023 ChessVision. All rights reserved.
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+};
+
+export default Analyze;

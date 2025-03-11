@@ -1,0 +1,179 @@
+
+import React, { useState } from 'react';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Upload, Copy, ExternalLink, Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { analyzeChessImage, openPGNOnLichess, getApiConfig } from '@/utils/chessAnalyzer';
+import { useDropzone } from 'react-dropzone';
+import { cn } from '@/lib/utils';
+
+export function ImageAnalyzer() {
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [pgn, setPgn] = useState<string | null>(null);
+  const { toast } = useToast();
+
+  const onDrop = async (acceptedFiles: File[]) => {
+    if (acceptedFiles.length === 0) return;
+    
+    const file = acceptedFiles[0];
+    if (!file.type.startsWith('image/')) {
+      setError('Please upload an image file');
+      return;
+    }
+    
+    await processImage(file);
+  };
+  
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      'image/*': []
+    },
+    maxFiles: 1
+  });
+
+  const processImage = async (file: File) => {
+    setIsProcessing(true);
+    setError(null);
+    setPgn(null);
+    
+    try {
+      // Get API configuration
+      const config = await getApiConfig();
+      
+      if (!config) {
+        setError('API configuration is missing. Please set up your API key in settings.');
+        toast({
+          title: "Configuration Missing",
+          description: "Please set up your API key in settings",
+          variant: "destructive"
+        });
+        setIsProcessing(false);
+        return;
+      }
+      
+      // Process the image
+      const result = await analyzeChessImage(file, config);
+      
+      if (!result.success || !result.pgn) {
+        setError(result.error || 'Failed to analyze the image');
+        toast({
+          title: "Analysis Failed",
+          description: result.error || "Couldn't extract chess position from image",
+          variant: "destructive"
+        });
+      } else {
+        setPgn(result.pgn);
+        toast({
+          title: "Analysis Complete",
+          description: "Successfully extracted chess position"
+        });
+      }
+    } catch (err) {
+      setError('An unexpected error occurred');
+      console.error(err);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred during analysis",
+        variant: "destructive"
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const copyToClipboard = () => {
+    if (!pgn) return;
+    
+    navigator.clipboard.writeText(pgn)
+      .then(() => {
+        toast({
+          title: "Copied!",
+          description: "PGN copied to clipboard"
+        });
+      })
+      .catch(err => {
+        console.error('Failed to copy:', err);
+        toast({
+          title: "Copy Failed",
+          description: "Failed to copy PGN to clipboard",
+          variant: "destructive"
+        });
+      });
+  };
+
+  const analyzeOnLichess = () => {
+    if (!pgn) return;
+    openPGNOnLichess(pgn);
+  };
+
+  const retry = () => {
+    setError(null);
+    setPgn(null);
+  };
+
+  return (
+    <Card className="p-6 w-full max-w-md mx-auto">
+      {!pgn && !isProcessing && !error && (
+        <div 
+          {...getRootProps()} 
+          className={cn(
+            "border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-all",
+            isDragActive ? "border-primary bg-primary/5" : "border-muted",
+            "hover:border-primary hover:bg-primary/5"
+          )}
+        >
+          <input {...getInputProps()} />
+          <Upload className="h-8 w-8 mx-auto mb-3 text-muted-foreground" />
+          <h3 className="text-lg font-medium mb-1">Upload Chess Image</h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            Drag and drop or click to browse
+          </p>
+          <Button variant="secondary" size="sm">Browse Files</Button>
+        </div>
+      )}
+
+      {isProcessing && (
+        <div className="text-center py-8">
+          <Loader2 className="h-8 w-8 mx-auto mb-3 animate-spin text-primary" />
+          <h3 className="text-lg font-medium mb-1">Analyzing Chess Position</h3>
+          <p className="text-sm text-muted-foreground">
+            This may take a few moments...
+          </p>
+        </div>
+      )}
+
+      {error && (
+        <div className="text-center py-8">
+          <div className="h-8 w-8 mx-auto mb-3 rounded-full bg-destructive/20 flex items-center justify-center">
+            <span className="text-destructive text-lg font-bold">!</span>
+          </div>
+          <h3 className="text-lg font-medium mb-1">Analysis Failed</h3>
+          <p className="text-sm text-muted-foreground mb-4">{error}</p>
+          <Button onClick={retry} variant="secondary" size="sm">Try Again</Button>
+        </div>
+      )}
+
+      {pgn && (
+        <div>
+          <h3 className="text-lg font-medium mb-2">Analysis Result</h3>
+          <div className="bg-muted rounded-lg p-3 mb-4 max-h-[200px] overflow-y-auto">
+            <pre className="text-xs whitespace-pre-wrap">{pgn}</pre>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" size="sm" onClick={copyToClipboard}>
+              <Copy className="h-4 w-4 mr-1" />
+              Copy PGN
+            </Button>
+            <Button onClick={analyzeOnLichess}>
+              <ExternalLink className="h-4 w-4 mr-1" />
+              Analyze on Lichess
+            </Button>
+          </div>
+        </div>
+      )}
+    </Card>
+  );
+}
