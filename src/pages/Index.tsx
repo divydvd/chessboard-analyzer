@@ -1,12 +1,8 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ChevronRight, Send, Image, Chess, Upload, Download, ExternalLink, Settings, Flag } from 'lucide-react';
+import { ChevronRight, Send, Image, Grid3X3, Upload, Download, ExternalLink, Settings, Flag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-
-// We need to add framer-motion as a dependency
-<lov-add-dependency>framer-motion@^11.0.8</lov-add-dependency>
 
 const Index = () => {
   return (
@@ -14,7 +10,7 @@ const Index = () => {
       {/* Header */}
       <header className="w-full px-8 py-6 flex justify-between items-center glass-morphism fixed top-0 z-50">
         <div className="flex items-center space-x-2">
-          <Chess className="h-6 w-6" />
+          <Grid3X3 className="h-6 w-6" />
           <h1 className="text-xl font-medium">ChessVision</h1>
         </div>
         <div className="flex items-center space-x-4">
@@ -206,7 +202,7 @@ const Index = () => {
       <footer className="py-10 px-8 border-t border-border">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center">
           <div className="flex items-center space-x-2 mb-4 md:mb-0">
-            <Chess className="h-5 w-5" />
+            <Grid3X3 className="h-5 w-5" />
             <span className="font-medium">ChessVision</span>
           </div>
           <div className="flex space-x-6">
