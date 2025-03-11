@@ -112,6 +112,15 @@ async function analyzeWithDeepseek(base64Image: string, apiKey: string): Promise
     
     if (!response.ok) {
       console.error("DeepSeek API error:", data);
+      
+      // Handle quota errors specially
+      if (data.error?.message?.includes("quota") || data.error?.message?.includes("exceeded")) {
+        return {
+          success: false,
+          error: "You've exceeded your DeepSeek API quota. Please check your billing details or try the OpenAI option."
+        };
+      }
+      
       return {
         success: false,
         error: data.error?.message || "Failed to analyze image with DeepSeek"
@@ -175,6 +184,15 @@ async function analyzeWithOpenAI(base64Image: string, apiKey: string): Promise<A
     
     if (!response.ok) {
       console.error("OpenAI API error:", data);
+      
+      // Handle quota errors specially
+      if (data.error?.message?.includes("quota") || data.error?.message?.includes("exceeded") || data.error?.type === "insufficient_quota") {
+        return {
+          success: false,
+          error: "You've exceeded your OpenAI API quota. Please add billing information in your OpenAI account or try the DeepSeek option."
+        };
+      }
+      
       return {
         success: false,
         error: data.error?.message || "Failed to analyze image with OpenAI"
@@ -262,6 +280,65 @@ export function openPGNOnLichess(pgn: string): void {
   document.body.appendChild(form);
   form.submit();
   document.body.removeChild(form);
+}
+
+/**
+ * Validate an API key with a simple test request
+ */
+export async function validateApiKey(provider: AIProvider, apiKey: string): Promise<{valid: boolean, message: string}> {
+  try {
+    if (!apiKey || apiKey.trim() === '') {
+      return { valid: false, message: "API key cannot be empty" };
+    }
+    
+    if (provider === "deepseek") {
+      // Test DeepSeek API with a minimal request
+      const response = await fetch("https://api.deepseek.com/v1/models", {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${apiKey}`
+        }
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        return { valid: true, message: "DeepSeek API key is valid" };
+      } else {
+        return { 
+          valid: false, 
+          message: data.error?.message || "Invalid DeepSeek API key" 
+        };
+      }
+    } else if (provider === "openai") {
+      // Test OpenAI API with a minimal request
+      const response = await fetch("https://api.openai.com/v1/models", {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${apiKey}`
+        }
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        return { valid: true, message: "OpenAI API key is valid" };
+      } else {
+        return { 
+          valid: false, 
+          message: data.error?.message || "Invalid OpenAI API key" 
+        };
+      }
+    }
+    
+    return { valid: false, message: "Unsupported API provider" };
+  } catch (error) {
+    console.error("Error validating API key:", error);
+    return { 
+      valid: false, 
+      message: error instanceof Error ? error.message : "Error validating API key" 
+    };
+  }
 }
 
 /**

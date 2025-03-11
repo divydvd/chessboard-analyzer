@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Upload, Copy, ExternalLink, Loader2 } from 'lucide-react';
+import { Upload, Copy, ExternalLink, Loader2, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { analyzeChessImage, openPGNOnLichess, getApiConfig } from '@/utils/chessAnalyzer';
 import { useDropzone } from 'react-dropzone';
@@ -58,12 +58,22 @@ export function ImageAnalyzer() {
       const result = await analyzeChessImage(file, config);
       
       if (!result.success || !result.pgn) {
-        setError(result.error || 'Failed to analyze the image');
-        toast({
-          title: "Analysis Failed",
-          description: result.error || "Couldn't extract chess position from image",
-          variant: "destructive"
-        });
+        // Handle specific cases
+        if (result.error?.includes("quota") || result.error?.includes("exceeded")) {
+          setError(`API Quota Exceeded: ${result.error}`);
+          toast({
+            title: "API Quota Error",
+            description: "You've exceeded your API quota. Please check billing details.",
+            variant: "destructive"
+          });
+        } else {
+          setError(result.error || 'Failed to analyze the image');
+          toast({
+            title: "Analysis Failed",
+            description: result.error || "Couldn't extract chess position from image",
+            variant: "destructive"
+          });
+        }
       } else {
         setPgn(result.pgn);
         toast({
@@ -148,10 +158,22 @@ export function ImageAnalyzer() {
       {error && (
         <div className="text-center py-8">
           <div className="h-8 w-8 mx-auto mb-3 rounded-full bg-destructive/20 flex items-center justify-center">
-            <span className="text-destructive text-lg font-bold">!</span>
+            <AlertCircle className="h-5 w-5 text-destructive" />
           </div>
           <h3 className="text-lg font-medium mb-1">Analysis Failed</h3>
           <p className="text-sm text-muted-foreground mb-4">{error}</p>
+          
+          {error.includes("API Quota Exceeded") || error.includes("exceeded your") ? (
+            <div className="bg-muted rounded-lg p-4 text-left mb-4 text-sm">
+              <p className="font-medium mb-2">How to fix this:</p>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>For OpenAI: Add a payment method in your <a href="https://platform.openai.com/account/billing" target="_blank" rel="noreferrer" className="text-primary hover:underline">OpenAI billing settings</a></li>
+                <li>For DeepSeek: Check your <a href="https://www.deepseek.com/" target="_blank" rel="noreferrer" className="text-primary hover:underline">DeepSeek account</a> for quota information</li>
+                <li>Try switching to the other provider in the API Settings tab</li>
+              </ul>
+            </div>
+          ) : null}
+          
           <Button onClick={retry} variant="secondary" size="sm">Try Again</Button>
         </div>
       )}

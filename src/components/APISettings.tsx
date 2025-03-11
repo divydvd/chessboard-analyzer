@@ -6,14 +6,16 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { AIProvider, getApiConfig, saveApiConfig } from '@/utils/chessAnalyzer';
-import { Eye, EyeOff } from 'lucide-react';
+import { AIProvider, getApiConfig, saveApiConfig, validateApiKey } from '@/utils/chessAnalyzer';
+import { Eye, EyeOff, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 
 export function APISettings() {
   const [provider, setProvider] = useState<AIProvider>('deepseek');
   const [apiKey, setApiKey] = useState('');
   const [showApiKey, setShowApiKey] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isValidating, setIsValidating] = useState(false);
+  const [validationStatus, setValidationStatus] = useState<{valid?: boolean, message?: string} | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -28,6 +30,53 @@ export function APISettings() {
     
     loadConfig();
   }, []);
+
+  // Reset validation when provider or API key changes
+  useEffect(() => {
+    setValidationStatus(null);
+  }, [provider, apiKey]);
+
+  const handleValidate = async () => {
+    if (!apiKey) {
+      toast({
+        title: "API Key Required",
+        description: "Please enter your API key",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setIsValidating(true);
+    setValidationStatus(null);
+    
+    try {
+      const result = await validateApiKey(provider, apiKey);
+      
+      setValidationStatus(result);
+      
+      if (result.valid) {
+        toast({
+          title: "API Key Valid",
+          description: result.message
+        });
+      } else {
+        toast({
+          title: "API Key Invalid",
+          description: result.message,
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Validation Error",
+        description: "An error occurred while validating the API key",
+        variant: "destructive"
+      });
+      console.error(error);
+    } finally {
+      setIsValidating(false);
+    }
+  };
 
   const handleSave = async () => {
     if (!apiKey) {
@@ -69,6 +118,51 @@ export function APISettings() {
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const renderHelpText = () => {
+    if (provider === 'openai') {
+      return (
+        <div className="text-xs text-muted-foreground space-y-1">
+          <p>Get your API key from <a href="https://platform.openai.com/api-keys" target="_blank" rel="noreferrer" className="text-primary hover:underline">OpenAI</a></p>
+          <p className="font-medium text-amber-500">Important: OpenAI requires payment information to use their API. You need to add a payment method in your OpenAI account to use this feature.</p>
+          <p>This tool uses GPT-4o which has costs associated with each image analysis.</p>
+        </div>
+      );
+    } else {
+      return (
+        <div className="text-xs text-muted-foreground space-y-1">
+          <p>Get your API key from <a href="https://www.deepseek.com/" target="_blank" rel="noreferrer" className="text-primary hover:underline">DeepSeek</a></p>
+          <p>DeepSeek Vision may offer free credits for new users, but you might need to add billing information for continued use.</p>
+        </div>
+      );
+    }
+  };
+
+  const renderValidationStatus = () => {
+    if (isValidating) {
+      return (
+        <div className="flex items-center mt-2 text-xs">
+          <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+          <span>Validating API key...</span>
+        </div>
+      );
+    }
+    
+    if (validationStatus) {
+      return (
+        <div className={`flex items-center mt-2 text-xs ${validationStatus.valid ? 'text-green-500' : 'text-red-500'}`}>
+          {validationStatus.valid ? (
+            <CheckCircle2 className="h-3 w-3 mr-1" />
+          ) : (
+            <AlertCircle className="h-3 w-3 mr-1" />
+          )}
+          <span>{validationStatus.message}</span>
+        </div>
+      );
+    }
+    
+    return null;
   };
 
   return (
@@ -119,17 +213,26 @@ export function APISettings() {
               {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </Button>
           </div>
-          <p className="text-xs text-muted-foreground">
-            {provider === 'deepseek' ? (
-              <>Get your API key from <a href="https://www.deepseek.com/" target="_blank" rel="noreferrer" className="text-primary hover:underline">DeepSeek</a></>
-            ) : (
-              <>Get your API key from <a href="https://platform.openai.com/api-keys" target="_blank" rel="noreferrer" className="text-primary hover:underline">OpenAI</a></>
-            )}
-          </p>
+          {renderValidationStatus()}
+          {renderHelpText()}
         </div>
       </CardContent>
-      <CardFooter>
-        <Button onClick={handleSave} disabled={isSaving} className="ml-auto">
+      <CardFooter className="flex justify-between">
+        <Button 
+          onClick={handleValidate} 
+          variant="outline" 
+          disabled={isValidating || !apiKey || apiKey.trim() === ''}
+        >
+          {isValidating ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+              Validating...
+            </>
+          ) : (
+            'Validate Key'
+          )}
+        </Button>
+        <Button onClick={handleSave} disabled={isSaving}>
           {isSaving ? "Saving..." : "Save Settings"}
         </Button>
       </CardFooter>
