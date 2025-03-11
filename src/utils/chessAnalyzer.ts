@@ -263,12 +263,11 @@ function extractPGNFromResponse(response: string): string | null {
  * Open the PGN on Lichess for analysis
  */
 export function openPGNOnLichess(pgn: string): void {
-  const lichessImportURL = "https://lichess.org/analysis/paste";
-  
-  // Create a hidden form to submit the PGN to Lichess
+  // Using Lichess Study Import API which works better with FEN and PGN
+  // Directly open in a new tab using the import feature
   const form = document.createElement('form');
   form.method = 'POST';
-  form.action = lichessImportURL;
+  form.action = 'https://lichess.org/import';
   form.target = '_blank';
   
   const input = document.createElement('input');

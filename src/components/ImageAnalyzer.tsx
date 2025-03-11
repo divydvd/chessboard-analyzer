@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -40,7 +39,6 @@ export function ImageAnalyzer() {
     setPgn(null);
     
     try {
-      // Get API configuration
       const config = await getApiConfig();
       
       if (!config) {
@@ -54,11 +52,9 @@ export function ImageAnalyzer() {
         return;
       }
       
-      // Process the image
       const result = await analyzeChessImage(file, config);
       
       if (!result.success || !result.pgn) {
-        // Handle specific cases
         if (result.error?.includes("quota") || result.error?.includes("exceeded")) {
           setError(`API Quota Exceeded: ${result.error}`);
           toast({
@@ -116,7 +112,17 @@ export function ImageAnalyzer() {
 
   const analyzeOnLichess = () => {
     if (!pgn) return;
-    openPGNOnLichess(pgn);
+    
+    try {
+      openPGNOnLichess(pgn);
+    } catch (err) {
+      console.error('Failed to open Lichess:', err);
+      toast({
+        title: "Lichess Error",
+        description: "Failed to open the position on Lichess. Try copying the PGN and importing manually.",
+        variant: "destructive"
+      });
+    }
   };
 
   const retry = () => {
@@ -193,6 +199,14 @@ export function ImageAnalyzer() {
               <ExternalLink className="h-4 w-4 mr-1" />
               Analyze on Lichess
             </Button>
+          </div>
+          <div className="mt-4 text-xs text-muted-foreground">
+            <p className="font-medium">Can't open on Lichess?</p>
+            <ol className="list-decimal pl-5 mt-1">
+              <li>Copy the PGN using the button above</li>
+              <li>Go to <a href="https://lichess.org/paste" target="_blank" rel="noreferrer" className="text-primary hover:underline">lichess.org/paste</a></li>
+              <li>Paste the PGN and click "Import"</li>
+            </ol>
           </div>
         </div>
       )}
