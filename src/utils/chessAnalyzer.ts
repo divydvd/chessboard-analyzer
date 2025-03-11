@@ -82,6 +82,17 @@ function createChessPrompt(): string {
 }
 
 /**
+ * Clean up PGN text by removing 'plaintext' prefix and ensuring proper formatting
+ */
+function cleanPGN(pgn: string): string {
+  // Remove 'plaintext' prefix if present
+  pgn = pgn.replace(/^plaintext\s*/i, '');
+  
+  // Ensure proper line endings for PGN format
+  return pgn.trim();
+}
+
+/**
  * Process image with DeepSeek Vision API
  */
 async function analyzeWithDeepseek(base64Image: string, apiKey: string): Promise<AnalysisResult> {
@@ -127,8 +138,8 @@ async function analyzeWithDeepseek(base64Image: string, apiKey: string): Promise
       };
     }
 
-    // Extract PGN from response
-    const pgn = extractPGNFromResponse(data.choices[0].message.content);
+    // Extract PGN from response and clean it
+    const pgn = cleanPGN(extractPGNFromResponse(data.choices[0].message.content));
     
     if (!pgn) {
       return {
@@ -199,8 +210,8 @@ async function analyzeWithOpenAI(base64Image: string, apiKey: string): Promise<A
       };
     }
 
-    // Extract PGN from response
-    const pgn = extractPGNFromResponse(data.choices[0].message.content);
+    // Extract PGN from response and clean it
+    const pgn = cleanPGN(extractPGNFromResponse(data.choices[0].message.content));
     
     if (!pgn) {
       return {
@@ -263,17 +274,19 @@ function extractPGNFromResponse(response: string): string | null {
  * Open the PGN on Lichess for analysis
  */
 export function openPGNOnLichess(pgn: string): void {
-  // Using Lichess Study Import API which works better with FEN and PGN
-  // Directly open in a new tab using the import feature
+  // Clean the PGN before sending to Lichess
+  const cleanedPGN = cleanPGN(pgn);
+  
+  // Using Lichess Study Import API
   const form = document.createElement('form');
   form.method = 'POST';
-  form.action = 'https://lichess.org/import';
+  form.action = 'https://lichess.org/analysis/paste';
   form.target = '_blank';
   
   const input = document.createElement('input');
   input.type = 'hidden';
   input.name = 'pgn';
-  input.value = pgn;
+  input.value = cleanedPGN;
   
   form.appendChild(input);
   document.body.appendChild(form);
