@@ -1,3 +1,4 @@
+
 import { toast } from "@/components/ui/use-toast";
 
 // Supported AI providers
@@ -94,8 +95,9 @@ function cleanPGN(pgn: string): string {
 
 /**
  * Extract FEN from PGN notation if present
+ * Export this function so it can be used in the ImageAnalyzer component
  */
-function extractFENFromPGN(pgn: string): string | null {
+export function extractFENFromPGN(pgn: string): string | null {
   // Look for FEN tag in the PGN
   const fenMatch = pgn.match(/\[FEN\s+"([^"]+)"\]/);
   if (fenMatch && fenMatch[1]) {
@@ -292,6 +294,7 @@ function extractPGNFromResponse(response: string): string | null {
 
 /**
  * Open the PGN on Lichess for analysis
+ * Improved to always use the direct FEN URL approach when possible
  */
 export function openPGNOnLichess(pgn: string): void {
   // Clean the PGN before processing
