@@ -94,7 +94,7 @@ function cleanPGN(pgn: string): string {
 
 /**
  * Extract FEN from PGN notation if present
- * Export this function so it can be used in the ImageAnalyzer component
+ * Export this function so it can be used in the components
  */
 export function extractFENFromPGN(pgn: string): string | null {
   // Look for FEN tag in the PGN
