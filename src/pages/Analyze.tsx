@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 import { ChevronLeft, Settings, Grid3X3 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { UserButton } from '@/components/auth/UserButton';
 
 const Analyze = () => {
   return (
@@ -24,6 +25,7 @@ const Analyze = () => {
             Back to Home
           </Link>
           <ThemeToggle />
+          <UserButton />
         </div>
       </header>
 
