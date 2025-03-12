@@ -82,8 +82,8 @@ export function ResultsDisplay({ pgn }: ResultsDisplayProps) {
         <p className="font-medium">Can't open on Lichess?</p>
         <ol className="list-decimal pl-5 mt-1">
           <li>Copy the PGN using the button above</li>
-          <li>Go to <a href="https://lichess.org/paste" target="_blank" rel="noreferrer" className="text-primary hover:underline">lichess.org/paste</a></li>
-          <li>Paste the PGN and click "Import"</li>
+          <li>Go to <a href="https://lichess.org/analysis" target="_blank" rel="noreferrer" className="text-primary hover:underline">lichess.org/analysis</a></li>
+          <li>Use the import feature to paste the PGN</li>
         </ol>
       </div>
     </div>

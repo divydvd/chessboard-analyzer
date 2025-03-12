@@ -293,7 +293,7 @@ function extractPGNFromResponse(response: string): string | null {
 
 /**
  * Open the PGN on Lichess for analysis
- * Improved to always use the direct FEN URL approach when possible
+ * Always use the direct FEN URL approach
  */
 export function openPGNOnLichess(pgn: string): void {
   // Clean the PGN before processing
@@ -310,21 +310,13 @@ export function openPGNOnLichess(pgn: string): void {
     // Open in new tab
     window.open(lichessURL, '_blank');
   } else {
-    // Fall back to form submission for full PGN when no FEN is available
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = 'https://lichess.org/analysis/paste';
-    form.target = '_blank';
+    // When no FEN is available, show a toast error
+    // This approach avoids using the /paste endpoint which causes 404 errors
+    console.error("No FEN available in PGN");
     
-    const input = document.createElement('input');
-    input.type = 'hidden';
-    input.name = 'pgn';
-    input.value = cleanedPGN;
-    
-    form.appendChild(input);
-    document.body.appendChild(form);
-    form.submit();
-    document.body.removeChild(form);
+    // Using imported toast directly would create circular dependencies
+    // Instead, we'll throw an error that will be caught in the ResultsDisplay component
+    throw new Error("Unable to open on Lichess: No FEN found in the PGN. Try copying the PGN manually.");
   }
 }
 
