@@ -93,6 +93,26 @@ function cleanPGN(pgn: string): string {
 }
 
 /**
+ * Extract FEN from PGN notation if present
+ */
+function extractFENFromPGN(pgn: string): string | null {
+  // Look for FEN tag in the PGN
+  const fenMatch = pgn.match(/\[FEN\s+"([^"]+)"\]/);
+  if (fenMatch && fenMatch[1]) {
+    return fenMatch[1];
+  }
+  return null;
+}
+
+/**
+ * Encode FEN for URL use
+ */
+function encodeFENForURL(fen: string): string {
+  // Replace spaces with underscores for URL encoding
+  return fen.replace(/\s+/g, '_');
+}
+
+/**
  * Process image with DeepSeek Vision API
  */
 async function analyzeWithDeepseek(base64Image: string, apiKey: string): Promise<AnalysisResult> {
@@ -274,24 +294,36 @@ function extractPGNFromResponse(response: string): string | null {
  * Open the PGN on Lichess for analysis
  */
 export function openPGNOnLichess(pgn: string): void {
-  // Clean the PGN before sending to Lichess
+  // Clean the PGN before processing
   const cleanedPGN = cleanPGN(pgn);
   
-  // Using Lichess Study Import API
-  const form = document.createElement('form');
-  form.method = 'POST';
-  form.action = 'https://lichess.org/analysis/paste';
-  form.target = '_blank';
+  // Try to extract FEN from PGN
+  const fen = extractFENFromPGN(cleanedPGN);
   
-  const input = document.createElement('input');
-  input.type = 'hidden';
-  input.name = 'pgn';
-  input.value = cleanedPGN;
-  
-  form.appendChild(input);
-  document.body.appendChild(form);
-  form.submit();
-  document.body.removeChild(form);
+  if (fen) {
+    // If FEN is available, use direct Lichess analysis URL
+    const encodedFEN = encodeFENForURL(fen);
+    const lichessURL = `https://lichess.org/analysis/${encodedFEN}`;
+    
+    // Open in new tab
+    window.open(lichessURL, '_blank');
+  } else {
+    // Fall back to form submission for full PGN when no FEN is available
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = 'https://lichess.org/analysis/paste';
+    form.target = '_blank';
+    
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'pgn';
+    input.value = cleanedPGN;
+    
+    form.appendChild(input);
+    document.body.appendChild(form);
+    form.submit();
+    document.body.removeChild(form);
+  }
 }
 
 /**

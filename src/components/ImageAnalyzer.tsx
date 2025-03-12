@@ -1,9 +1,10 @@
+
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Upload, Copy, ExternalLink, Loader2, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { analyzeChessImage, openPGNOnLichess, getApiConfig } from '@/utils/chessAnalyzer';
+import { analyzeChessImage, openPGNOnLichess, getApiConfig, extractFENFromPGN } from '@/utils/chessAnalyzer';
 import { useDropzone } from 'react-dropzone';
 import { cn } from '@/lib/utils';
 
@@ -117,11 +118,30 @@ export function ImageAnalyzer() {
       openPGNOnLichess(pgn);
     } catch (err) {
       console.error('Failed to open Lichess:', err);
-      toast({
-        title: "Lichess Error",
-        description: "Failed to open the position on Lichess. Try copying the PGN and importing manually.",
-        variant: "destructive"
-      });
+      
+      // Extract FEN for manual fallback link
+      const fen = extractFENFromPGN(pgn);
+      
+      if (fen) {
+        // If we have a FEN, provide a direct link as fallback
+        const encodedFEN = fen.replace(/\s+/g, '_');
+        const lichessURL = `https://lichess.org/analysis/${encodedFEN}`;
+        
+        toast({
+          title: "Automatic Opening Failed",
+          description: (
+            <div>
+              <p>Failed to open Lichess automatically. Click <a href={lichessURL} target="_blank" rel="noreferrer" className="text-primary underline">here</a> to open manually.</p>
+            </div>
+          )
+        });
+      } else {
+        toast({
+          title: "Lichess Error",
+          description: "Failed to open the position on Lichess. Try copying the PGN and importing manually.",
+          variant: "destructive"
+        });
+      }
     }
   };
 
