@@ -1,69 +1,38 @@
-# Welcome to your Lovable project
 
-## Project info
+# ChessVision App
 
-**URL**: https://lovable.dev/projects/c2d649d4-f381-4bd9-8b5f-d43d83870566
+This application allows you to analyze chess positions from images using AI.
 
-## How can I edit this code?
+## Setup Instructions
 
-There are several ways of editing your application.
+1. Clone the repository
+2. Install dependencies with `npm install`
+3. Create a `.env` file at the root of the project
+4. Copy the contents from `.env.example` to your new `.env` file
+5. Fill in your API keys:
 
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/c2d649d4-f381-4bd9-8b5f-d43d83870566) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```
+VITE_CLERK_PUBLISHABLE_KEY=your_clerk_key_here
+VITE_OPENAI_API_KEY=your_openai_key_here
+VITE_DEEPSEEK_API_KEY=your_deepseek_key_here
 ```
 
-**Edit a file directly in GitHub**
+6. Run the application with `npm run dev`
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Authentication
 
-**Use GitHub Codespaces**
+This app uses Clerk for authentication. To set up Clerk:
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+1. Create an account at https://clerk.dev
+2. Create a new application
+3. Get your publishable key
+4. Add it to your `.env` file as `VITE_CLERK_PUBLISHABLE_KEY`
 
-## What technologies are used for this project?
+## AI Image Analysis
 
-This project is built with .
+The app supports two AI providers:
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+1. OpenAI (GPT-4o) - Requires an API key from https://openai.com
+2. DeepSeek Vision - Requires an API key from https://deepseek.com
 
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/c2d649d4-f381-4bd9-8b5f-d43d83870566) and click on Share -> Publish.
-
-## I want to use a custom domain - is that possible?
-
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+Add at least one of these keys to your `.env` file to enable image analysis.

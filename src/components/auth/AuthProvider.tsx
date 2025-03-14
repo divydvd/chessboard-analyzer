@@ -6,10 +6,12 @@ import { ReactNode } from "react";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { theme } = useTheme();
-  const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+  const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || '';
   
+  // Render children directly if no key is available
   if (!clerkPubKey) {
-    console.error("Missing Clerk publishable key. Please add VITE_CLERK_PUBLISHABLE_KEY to your environment variables.");
+    console.warn("Missing Clerk publishable key. Some authentication features will be disabled.");
+    return <>{children}</>;
   }
 
   return (

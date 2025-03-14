@@ -421,6 +421,20 @@ export async function validateApiKey(provider: AIProvider, apiKey: string): Prom
  */
 export async function getApiConfig(): Promise<AnalyzerConfig | null> {
   try {
+    // Check for environment variables first
+    const envOpenAIKey = import.meta.env.VITE_OPENAI_API_KEY;
+    const envDeepseekKey = import.meta.env.VITE_DEEPSEEK_API_KEY;
+    
+    // If environment variables are set, use them
+    if (envOpenAIKey) {
+      return { provider: "openai", apiKey: envOpenAIKey };
+    }
+    
+    if (envDeepseekKey) {
+      return { provider: "deepseek", apiKey: envDeepseekKey };
+    }
+    
+    // Otherwise fall back to stored keys
     // For browser extension
     if (typeof chrome !== 'undefined' && chrome.storage) {
       return new Promise((resolve) => {
