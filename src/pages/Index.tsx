@@ -6,7 +6,7 @@ import { Grid3X3, ChevronRight, Image, Shield } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { UserButton } from "@/components/auth/UserButton";
-import { useAuth } from "@clerk/clerk-react";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 const Index = () => {
   const { isSignedIn, isLoaded } = useAuth();
