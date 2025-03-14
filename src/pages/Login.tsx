@@ -1,9 +1,9 @@
 
 import React from 'react';
-import { SignIn } from "@clerk/clerk-react";
 import { Grid3X3 } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 
 const Login = () => {
   return (
@@ -26,23 +26,18 @@ const Login = () => {
           </div>
           
           <div className="bg-card border rounded-lg shadow-sm p-6">
-            <SignIn 
-              appearance={{
-                elements: {
-                  rootBox: "w-full",
-                  card: "w-full shadow-none p-0 border-0",
-                  headerTitle: "text-xl font-semibold",
-                  headerSubtitle: "text-sm text-muted-foreground",
-                  socialButtonsBlockButton: "border border-input bg-background hover:bg-accent",
-                  formButtonPrimary: "bg-primary text-primary-foreground hover:bg-primary/90",
-                  footerAction: "text-sm",
-                  formFieldLabel: "text-sm font-medium text-foreground",
-                  formFieldInput: "bg-background border border-input",
-                }
-              }}
-              signUpUrl="/signup"
-              redirectUrl="/analyze"
-            />
+            <div className="space-y-4">
+              <h2 className="text-xl font-semibold">Authentication Removed</h2>
+              <p className="text-muted-foreground">Authentication has been temporarily removed.</p>
+              <div className="flex flex-col space-y-2">
+                <Button asChild>
+                  <Link to="/analyze">Continue to Analysis</Link>
+                </Button>
+                <Button variant="outline" asChild>
+                  <Link to="/signup">Create an Account</Link>
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       </main>

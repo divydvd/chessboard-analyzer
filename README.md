@@ -12,21 +12,11 @@ This application allows you to analyze chess positions from images using AI.
 5. Fill in your API keys:
 
 ```
-VITE_CLERK_PUBLISHABLE_KEY=your_clerk_key_here
 VITE_OPENAI_API_KEY=your_openai_key_here
 VITE_DEEPSEEK_API_KEY=your_deepseek_key_here
 ```
 
 6. Run the application with `npm run dev`
-
-## Authentication
-
-This app uses Clerk for authentication. To set up Clerk:
-
-1. Create an account at https://clerk.dev
-2. Create a new application
-3. Get your publishable key
-4. Add it to your `.env` file as `VITE_CLERK_PUBLISHABLE_KEY`
 
 ## AI Image Analysis
 
