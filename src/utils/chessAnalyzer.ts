@@ -73,11 +73,11 @@ function fileToBase64(file: File): Promise<string> {
  */
 function createChessPrompt(): string {
   return `
-  Analyze this chessboard image and provide the exact position in PGN (Portable Game Notation) format.
-  Only output the valid PGN notation with no additional text or explanations.
+  Extract only the FEN string from this chessboard. Do NOT suggest moves or add extra moves.
+  Only output the valid FEN notation with no additional text or explanations.
   If the board orientation is ambiguous, assume White is playing from the bottom.
-  Include FEN notation if you can determine it.
   Be precise about piece positions, especially for similar-looking pieces like knights and pawns.
+  Don't analyze the position or suggest next moves.
   `;
 }
 
@@ -88,6 +88,10 @@ function cleanPGN(pgn: string): string {
   // Remove 'plaintext' prefix if present
   pgn = pgn.replace(/^plaintext\s*/i, '');
   
+  // Remove any suggested moves or analysis
+  // Look for standard PGN move notation and remove it
+  pgn = pgn.replace(/\d+\.\s*[KQRBNP]?[a-h]?[1-8]?x?[a-h][1-8][+#]?\s+[KQRBNP]?[a-h]?[1-8]?x?[a-h][1-8][+#]?/g, '');
+  
   // Ensure proper line endings for PGN format
   return pgn.trim();
 }
@@ -97,11 +101,18 @@ function cleanPGN(pgn: string): string {
  * Export this function so it can be used in the components
  */
 export function extractFENFromPGN(pgn: string): string | null {
+  // First, try to find a complete FEN string directly in the text
+  const directFenMatch = pgn.match(/([rnbqkpRNBQKP1-8]+\/){7}[rnbqkpRNBQKP1-8]+\s[wb]\s[KQkq-]+\s[a-h\-][1-8\-]/);
+  if (directFenMatch && directFenMatch[0]) {
+    return directFenMatch[0];
+  }
+  
   // Look for FEN tag in the PGN
   const fenMatch = pgn.match(/\[FEN\s+"([^"]+)"\]/);
   if (fenMatch && fenMatch[1]) {
     return fenMatch[1];
   }
+  
   return null;
 }
 
@@ -160,12 +171,27 @@ async function analyzeWithDeepseek(base64Image: string, apiKey: string): Promise
     }
 
     // Extract PGN from response and clean it
-    const pgn = cleanPGN(extractPGNFromResponse(data.choices[0].message.content));
+    const responseText = data.choices[0].message.content;
+    
+    // First, try to extract a FEN directly
+    const fen = extractFENFromPGN(responseText);
+    
+    if (fen) {
+      // If we have a direct FEN, create a minimal PGN with it
+      const pgn = `[SetUp "1"]\n[FEN "${fen}"]\n\n*`;
+      return {
+        success: true,
+        pgn
+      };
+    }
+    
+    // If no direct FEN, try to use the full response as PGN
+    const pgn = cleanPGN(responseText);
     
     if (!pgn) {
       return {
         success: false,
-        error: "Could not extract valid PGN from the response"
+        error: "Could not extract valid FEN or PGN from the response"
       };
     }
 
@@ -198,7 +224,7 @@ async function analyzeWithOpenAI(base64Image: string, apiKey: string): Promise<A
         messages: [
           {
             role: "system",
-            content: "You are a chess position analyzer that identifies positions from images and returns only valid PGN notation."
+            content: "You are a chess position analyzer that identifies positions from images and returns only valid FEN notation."
           },
           {
             role: "user", 
@@ -231,13 +257,28 @@ async function analyzeWithOpenAI(base64Image: string, apiKey: string): Promise<A
       };
     }
 
-    // Extract PGN from response and clean it
-    const pgn = cleanPGN(extractPGNFromResponse(data.choices[0].message.content));
+    // Extract response text
+    const responseText = data.choices[0].message.content;
+    
+    // First, try to extract a FEN directly
+    const fen = extractFENFromPGN(responseText);
+    
+    if (fen) {
+      // If we have a direct FEN, create a minimal PGN with it
+      const pgn = `[SetUp "1"]\n[FEN "${fen}"]\n\n*`;
+      return {
+        success: true,
+        pgn
+      };
+    }
+    
+    // If no direct FEN, try to use the full response as PGN
+    const pgn = cleanPGN(responseText);
     
     if (!pgn) {
       return {
         success: false,
-        error: "Could not extract valid PGN from the response"
+        error: "Could not extract valid FEN or PGN from the response"
       };
     }
 
@@ -261,23 +302,18 @@ function extractPGNFromResponse(response: string): string | null {
   // Try to extract PGN notation from text
   // Look for common PGN format patterns
   
-  // First, check if response contains [Event or [Site which typically start PGN
-  if (response.includes("[Event") || response.includes("[Site")) {
-    // Try to extract the complete PGN block
-    const pgnMatch = response.match(/\[\s*Event.*?\s*(?:\d+\.\s*\S+\s+\S+\s*)+(?:\*|1-0|0-1|1\/2-1\/2)/s);
-    if (pgnMatch) return pgnMatch[0].trim();
-  }
-  
-  // If we can't find standard PGN format, try looking for FEN notation
+  // First, look for a direct FEN string
   const fenMatch = response.match(/([rnbqkpRNBQKP1-8]+\/){7}[rnbqkpRNBQKP1-8]+\s[wb]\s[KQkq-]+\s[a-h\-][1-8\-]/);
   if (fenMatch) {
     // Convert FEN to minimal PGN
     return `[SetUp "1"]\n[FEN "${fenMatch[0]}"]\n\n*`;
   }
   
-  // If all else fails, just return the response as-is if it seems to contain chess notation
-  if (response.match(/\d+\.\s*[KQRBNP]?[a-h]?[1-8]?x?[a-h][1-8]/)) {
-    return response.trim();
+  // Then check if response contains [Event or [Site which typically start PGN
+  if (response.includes("[Event") || response.includes("[Site")) {
+    // Try to extract the complete PGN block
+    const pgnMatch = response.match(/\[\s*Event.*?\s*(?:\d+\.\s*\S+\s+\S+\s*)+(?:\*|1-0|0-1|1\/2-1\/2)/s);
+    if (pgnMatch) return pgnMatch[0].trim();
   }
   
   // Handle case where the API might have wrapped the PGN in code blocks
@@ -288,7 +324,8 @@ function extractPGNFromResponse(response: string): string | null {
     }
   }
   
-  return response.trim(); // Return the full response as a fallback
+  // If all else fails, just return the response as-is
+  return response.trim();
 }
 
 /**
