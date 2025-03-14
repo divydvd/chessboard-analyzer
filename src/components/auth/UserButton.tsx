@@ -1,5 +1,6 @@
 
 import { UserButton as ClerkUserButton } from "@clerk/clerk-react";
+import { dark } from "@clerk/themes";
 import { useTheme } from "@/hooks/use-theme";
 
 export function UserButton() {
@@ -8,7 +9,7 @@ export function UserButton() {
   return (
     <ClerkUserButton 
       appearance={{
-        baseTheme: theme === "dark" ? "dark" : "light",
+        baseTheme: theme === "dark" ? dark : undefined,
         elements: {
           userButtonBox: "h-8 w-8"
         }
