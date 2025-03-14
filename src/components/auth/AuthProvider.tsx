@@ -1,5 +1,6 @@
 
-import { createContext, ReactNode, useContext, useState } from "react";
+import { createContext, ReactNode, useContext } from "react";
+import { useUser, useAuth as useClerkAuth } from "@clerk/clerk-react";
 
 type AuthContextType = {
   isSignedIn: boolean;
@@ -19,15 +20,21 @@ export function useAuth() {
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [isSignedIn, setIsSignedIn] = useState<boolean>(false);
-  const [isLoaded, setIsLoaded] = useState<boolean>(true);
-
-  // Simple auth functions
-  const signIn = () => setIsSignedIn(true);
-  const signOut = () => setIsSignedIn(false);
+  const { isSignedIn, isLoaded } = useUser();
+  const { signOut } = useClerkAuth();
+  
+  // This is a placeholder since Clerk handles the actual sign-in
+  const signIn = () => {
+    console.log("Sign in should be handled by Clerk UI components");
+  };
 
   return (
-    <AuthContext.Provider value={{ isSignedIn, isLoaded, signIn, signOut }}>
+    <AuthContext.Provider value={{ 
+      isSignedIn: isSignedIn || false, 
+      isLoaded: isLoaded, 
+      signIn, 
+      signOut: () => signOut() 
+    }}>
       {children}
     </AuthContext.Provider>
   );

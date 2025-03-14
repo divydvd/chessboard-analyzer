@@ -7,6 +7,7 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { User, LogOut } from "lucide-react";
+import { UserButton as ClerkUserButton } from "@clerk/clerk-react";
 
 export function UserButton() {
   const { isSignedIn, signOut } = useAuth();

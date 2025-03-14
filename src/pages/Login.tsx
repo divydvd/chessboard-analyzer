@@ -4,17 +4,9 @@ import { Grid3X3 } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/components/auth/AuthProvider';
+import { SignIn } from '@clerk/clerk-react';
 
 const Login = () => {
-  const { signIn } = useAuth();
-  const navigate = useNavigate();
-
-  const handleSignIn = () => {
-    signIn();
-    navigate('/analyze');
-  };
-
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <header className="w-full px-8 py-6 flex justify-between items-center glass-morphism fixed top-0 z-50">
@@ -35,18 +27,7 @@ const Login = () => {
           </div>
           
           <div className="bg-card border rounded-lg shadow-sm p-6">
-            <div className="space-y-4">
-              <h2 className="text-xl font-semibold">Authentication Placeholder</h2>
-              <p className="text-muted-foreground">Click the button below to simulate signing in.</p>
-              <div className="flex flex-col space-y-2">
-                <Button onClick={handleSignIn}>
-                  Sign In
-                </Button>
-                <Button variant="outline" asChild>
-                  <Link to="/signup">Create an Account</Link>
-                </Button>
-              </div>
-            </div>
+            <SignIn routing="path" path="/login" />
           </div>
         </div>
       </main>
