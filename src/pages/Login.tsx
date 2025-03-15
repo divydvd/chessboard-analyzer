@@ -2,8 +2,7 @@
 import React from 'react';
 import { Grid3X3 } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { Link, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 import { SignIn } from '@clerk/clerk-react';
 
 const Login = () => {
@@ -27,7 +26,7 @@ const Login = () => {
           </div>
           
           <div className="bg-card border rounded-lg shadow-sm p-6">
-            <SignIn routing="path" path="/login" />
+            <SignIn routing="path" path="/login" signUpUrl="/signup" />
           </div>
         </div>
       </main>

@@ -18,34 +18,14 @@ export function ImageUrlInput({ onImageUrlSubmitted }: ImageUrlInputProps) {
       // Check if the URL is valid
       new URL(url);
       
-      // Try a HEAD request to check if it's an image
-      // First, ensure we're not hitting CORS issues
-      setIsValidating(true);
-      const response = await fetch(url, { method: 'HEAD' })
-        .catch(() => {
-          // If we hit CORS issues, we'll just proceed with the assumption it might be an image
-          console.warn('Could not validate image URL due to CORS, will try to process anyway');
-          return null;
-        });
-        
-      setIsValidating(false);
-      
-      if (response) {
-        const contentType = response.headers.get('content-type');
-        if (contentType && !contentType.startsWith('image/')) {
-          setError('URL does not point to an image. Please provide a direct image link.');
-          return false;
-        }
-      }
-      
-      // Check if it looks like an image URL by extension
+      // We'll bypass the HEAD request validation which can cause CORS issues
+      // Just do a basic check for image file extension
       const lowerUrl = url.toLowerCase();
       const hasImageExtension = /\.(jpg|jpeg|png|gif|webp|bmp)(\?.*)?$/i.test(lowerUrl);
       
       if (!hasImageExtension) {
-        setError('URL might not be an image. Make sure it ends with .jpg, .png, etc.');
-        // We'll still proceed but with a warning
-        return true;
+        // Just warn but still proceed
+        console.warn('URL might not be an image, but proceeding anyway');
       }
       
       setError('');
@@ -68,10 +48,20 @@ export function ImageUrlInput({ onImageUrlSubmitted }: ImageUrlInputProps) {
       return;
     }
     
-    const isValid = await validateImageUrl(url);
+    // Set validating state during the process
+    setIsValidating(true);
     
-    if (isValid) {
-      onImageUrlSubmitted(url);
+    try {
+      const isValid = await validateImageUrl(url);
+      
+      if (isValid) {
+        onImageUrlSubmitted(url);
+      }
+    } catch (error) {
+      console.error('Error during URL validation:', error);
+      setError('An error occurred while validating the URL');
+    } finally {
+      setIsValidating(false);
     }
   };
 
@@ -107,7 +97,6 @@ export function ImageUrlInput({ onImageUrlSubmitted }: ImageUrlInputProps) {
       <div className="mt-4 text-xs text-muted-foreground">
         <p>Paste a direct link to a chess position image.</p>
         <p>The URL should point directly to an image file (JPG, PNG, etc).</p>
-        <p>We'll try to validate the link, but some image hosts may block validation requests.</p>
       </div>
     </div>
   );

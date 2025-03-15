@@ -26,7 +26,7 @@ const Signup = () => {
           </div>
           
           <div className="bg-card border rounded-lg shadow-sm p-6">
-            <SignUp routing="path" path="/signup" />
+            <SignUp routing="path" path="/signup" signInUrl="/login" />
           </div>
         </div>
       </main>
