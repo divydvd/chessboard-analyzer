@@ -13,9 +13,31 @@ if (!PUBLISHABLE_KEY) {
 createRoot(document.getElementById("root")!).render(
   <ClerkProvider 
     publishableKey={PUBLISHABLE_KEY}
-    clerkJSVersion="5.56.0-snapshot.v20250312225817"
-    signInUrl="/login"
-    signUpUrl="/signup">
+    appearance={{
+      elements: {
+        formButtonPrimary: 'bg-primary hover:bg-primary/90 text-primary-foreground',
+        card: 'bg-background',
+        headerTitle: 'text-foreground',
+        headerSubtitle: 'text-muted-foreground',
+        formFieldLabel: 'text-foreground',
+        formFieldInput: 'bg-background border-input',
+        footerActionLink: 'text-primary hover:text-primary/90'
+      }
+    }}
+    localization={{
+      signIn: {
+        start: {
+          title: "Sign in to ChessVision",
+          subtitle: "to continue to ChessVision"
+        }
+      },
+      signUp: {
+        start: {
+          title: "Create your ChessVision account",
+          subtitle: "to get started with ChessVision"
+        }
+      }
+    }}>
     <App />
   </ClerkProvider>
 );
