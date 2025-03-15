@@ -73,11 +73,11 @@ function fileToBase64(file: File): Promise<string> {
  */
 function createChessPrompt(): string {
   return `
-  Extract only the FEN string from this chessboard. Do NOT suggest moves or add extra moves.
-  Only output the valid FEN notation with no additional text or explanations.
+  Extract ONLY the chess position from this image in FEN notation format.
+  DO NOT suggest moves, analysis, or add any additional text.
+  DO NOT add any game continuation or suggested moves.
+  ONLY return the raw FEN string representing the exact position shown, nothing else.
   If the board orientation is ambiguous, assume White is playing from the bottom.
-  Be precise about piece positions, especially for similar-looking pieces like knights and pawns.
-  Don't analyze the position or suggest next moves.
   `;
 }
 

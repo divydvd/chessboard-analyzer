@@ -29,7 +29,21 @@ createRoot(document.getElementById("root")!).render(
         dividerText: 'dark:text-white/70',
         formFieldAction: 'dark:text-white/70',
         formFieldSuccessText: 'dark:text-white/70',
-        otpCodeFieldInput: 'dark:border-white/20 dark:text-white'
+        otpCodeFieldInput: 'dark:border-white/20 dark:text-white',
+        socialButtonsProviderIcon: 'dark:text-white dark:fill-white',
+        logoBox: 'dark:text-white',
+        identityPreviewEditButton: 'dark:text-white',
+        badge: 'dark:text-white/70',
+      },
+      variables: {
+        colorPrimary: 'hsl(var(--primary))',
+        colorBackground: 'hsl(var(--background))',
+        colorText: 'hsl(var(--foreground))',
+        colorTextSecondary: 'hsl(var(--muted-foreground))',
+        colorTextOnPrimaryBackground: 'hsl(var(--primary-foreground))',
+        colorInputBackground: 'hsl(var(--background))',
+        colorInputText: 'hsl(var(--foreground))',
+        fontFamily: 'var(--font-sans)',
       }
     }}
     localization={{
