@@ -21,7 +21,15 @@ createRoot(document.getElementById("root")!).render(
         headerSubtitle: 'text-muted-foreground',
         formFieldLabel: 'text-foreground',
         formFieldInput: 'bg-background border-input',
-        footerActionLink: 'text-primary hover:text-primary/90'
+        footerActionLink: 'text-primary hover:text-primary/90',
+        socialButtonsIconButton: 'dark:text-white dark:fill-white',
+        socialButtonsBlockButton: 'dark:border-white/20 dark:text-white',
+        socialButtonsBlockButtonText: 'dark:text-white',
+        dividerLine: 'dark:bg-white/20',
+        dividerText: 'dark:text-white/70',
+        formFieldAction: 'dark:text-white/70',
+        formFieldSuccessText: 'dark:text-white/70',
+        otpCodeFieldInput: 'dark:border-white/20 dark:text-white'
       }
     }}
     localization={{

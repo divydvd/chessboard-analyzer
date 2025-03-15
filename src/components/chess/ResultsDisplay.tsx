@@ -53,11 +53,26 @@ export function ResultsDisplay({ pgn }: ResultsDisplayProps) {
           )
         });
       } else {
-        toast({
-          title: "Lichess Error",
-          description: "Failed to open the position on Lichess. Try copying the PGN and importing manually.",
-          variant: "destructive"
-        });
+        // Try to handle direct FENs
+        if (pgn.includes('/') && (pgn.includes(' w ') || pgn.includes(' b '))) {
+          const encodedFEN = pgn.trim().replace(/\s+/g, '_');
+          const lichessURL = `https://lichess.org/analysis/${encodedFEN}`;
+          
+          toast({
+            title: "Automatic Opening Failed",
+            description: (
+              <div>
+                <p>Failed to open Lichess automatically. Click <a href={lichessURL} target="_blank" rel="noreferrer" className="text-primary underline">here</a> to open manually.</p>
+              </div>
+            )
+          });
+        } else {
+          toast({
+            title: "Lichess Error",
+            description: "Failed to open the position on Lichess. Try copying the PGN and importing manually.",
+            variant: "destructive"
+          });
+        }
       }
     }
   };

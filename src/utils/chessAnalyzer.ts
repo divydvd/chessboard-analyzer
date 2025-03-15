@@ -1,3 +1,4 @@
+
 import { toast } from "@/components/ui/use-toast";
 
 // Supported AI providers
@@ -87,6 +88,7 @@ function createChessPrompt(): string {
 function cleanPGN(pgn: string): string {
   // Remove 'plaintext' prefix if present
   pgn = pgn.replace(/^plaintext\s*/i, '');
+  pgn = pgn.replace(/^```(?:plaintext)?\s*([\s\S]*?)```$/m, '$1');
   
   // Remove any suggested moves or analysis
   // Look for standard PGN move notation and remove it
@@ -101,7 +103,13 @@ function cleanPGN(pgn: string): string {
  * Export this function so it can be used in the components
  */
 export function extractFENFromPGN(pgn: string): string | null {
-  // First, try to find a complete FEN string directly in the text
+  // First, check if the input might be a direct FEN string
+  const directFenPattern = /^([rnbqkpRNBQKP1-8]+\/){7}[rnbqkpRNBQKP1-8]+\s[wb]\s[KQkq-]+\s[a-h\-][1-8\-]/;
+  if (directFenPattern.test(pgn.trim())) {
+    return pgn.trim();
+  }
+  
+  // Try to find a complete FEN string directly in the text
   const directFenMatch = pgn.match(/([rnbqkpRNBQKP1-8]+\/){7}[rnbqkpRNBQKP1-8]+\s[wb]\s[KQkq-]+\s[a-h\-][1-8\-]/);
   if (directFenMatch && directFenMatch[0]) {
     return directFenMatch[0];
@@ -111,6 +119,12 @@ export function extractFENFromPGN(pgn: string): string | null {
   const fenMatch = pgn.match(/\[FEN\s+"([^"]+)"\]/);
   if (fenMatch && fenMatch[1]) {
     return fenMatch[1];
+  }
+
+  // Look for FEN tag without quotes
+  const fenMatchNoQuotes = pgn.match(/\[FEN\s+([^\]]+)\]/);
+  if (fenMatchNoQuotes && fenMatchNoQuotes[1]) {
+    return fenMatchNoQuotes[1].trim();
   }
   
   return null;
@@ -333,27 +347,43 @@ function extractPGNFromResponse(response: string): string | null {
  * Always use the direct FEN URL approach
  */
 export function openPGNOnLichess(pgn: string): void {
-  // Clean the PGN before processing
-  const cleanedPGN = cleanPGN(pgn);
-  
-  // Try to extract FEN from PGN
-  const fen = extractFENFromPGN(cleanedPGN);
-  
-  if (fen) {
-    // If FEN is available, use direct Lichess analysis URL
-    const encodedFEN = encodeFENForURL(fen);
-    const lichessURL = `https://lichess.org/analysis/${encodedFEN}`;
+  try {
+    // Clean the PGN before processing
+    const cleanedPGN = cleanPGN(pgn);
+    console.log("Cleaned PGN:", cleanedPGN);
     
-    // Open in new tab
-    window.open(lichessURL, '_blank');
-  } else {
-    // When no FEN is available, show a toast error
-    // This approach avoids using the /paste endpoint which causes 404 errors
-    console.error("No FEN available in PGN");
+    // Try to extract FEN from PGN
+    let fen = extractFENFromPGN(cleanedPGN);
+    console.log("Extracted FEN:", fen);
     
-    // Using imported toast directly would create circular dependencies
-    // Instead, we'll throw an error that will be caught in the ResultsDisplay component
-    throw new Error("Unable to open on Lichess: No FEN found in the PGN. Try copying the PGN manually.");
+    // If we can't find a FEN, try to handle the case where the API returned a direct FEN
+    if (!fen && cleanedPGN.includes('/') && (cleanedPGN.includes(' w ') || cleanedPGN.includes(' b '))) {
+      // This might be a direct FEN string
+      fen = cleanedPGN.trim();
+      console.log("Using direct FEN:", fen);
+    }
+    
+    if (fen) {
+      // If FEN is available, use direct Lichess analysis URL
+      const encodedFEN = encodeFENForURL(fen);
+      const lichessURL = `https://lichess.org/analysis/${encodedFEN}`;
+      console.log("Opening Lichess URL:", lichessURL);
+      
+      // Open in new tab
+      window.open(lichessURL, '_blank');
+    } else {
+      // When no FEN is available, try to use the Lichess import API with the full PGN
+      console.error("No FEN available in PGN:", cleanedPGN);
+      
+      // As a fallback, still try to open Lichess analysis page
+      window.open('https://lichess.org/analysis', '_blank');
+      
+      // Show error toast
+      throw new Error("Unable to extract FEN from the PGN. Opening Lichess analysis page instead.");
+    }
+  } catch (error) {
+    console.error("Error opening Lichess:", error);
+    throw error;
   }
 }
 
