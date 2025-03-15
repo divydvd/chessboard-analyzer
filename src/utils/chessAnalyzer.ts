@@ -1,4 +1,3 @@
-
 import { toast } from "@/components/ui/use-toast";
 
 // Supported AI providers
@@ -344,43 +343,32 @@ function extractPGNFromResponse(response: string): string | null {
 
 /**
  * Open the PGN on Lichess for analysis
- * Always use the direct FEN URL approach
  */
 export function openPGNOnLichess(pgn: string): void {
   try {
-    // Clean the PGN before processing
-    const cleanedPGN = cleanPGN(pgn);
-    console.log("Cleaned PGN:", cleanedPGN);
+    // Clean the PGN
+    const cleanedPGN = pgn.trim();
     
-    // Try to extract FEN from PGN
-    let fen = extractFENFromPGN(cleanedPGN);
-    console.log("Extracted FEN:", fen);
-    
-    // If we can't find a FEN, try to handle the case where the API returned a direct FEN
-    if (!fen && cleanedPGN.includes('/') && (cleanedPGN.includes(' w ') || cleanedPGN.includes(' b '))) {
+    // Check if it's a FEN string
+    if (cleanedPGN.includes('/') && (cleanedPGN.includes(' w ') || cleanedPGN.includes(' b '))) {
       // This might be a direct FEN string
-      fen = cleanedPGN.trim();
-      console.log("Using direct FEN:", fen);
+      const encodedFEN = cleanedPGN.replace(/\s+/g, '_');
+      const lichessURL = `https://lichess.org/analysis/${encodedFEN}`;
+      window.open(lichessURL, '_blank');
+      return;
     }
     
-    if (fen) {
-      // If FEN is available, use direct Lichess analysis URL
-      const encodedFEN = encodeFENForURL(fen);
+    // Extract FEN from PGN if available
+    const fenMatch = cleanedPGN.match(/\[FEN\s+"([^"]+)"\]/);
+    if (fenMatch && fenMatch[1]) {
+      const encodedFEN = fenMatch[1].replace(/\s+/g, '_');
       const lichessURL = `https://lichess.org/analysis/${encodedFEN}`;
-      console.log("Opening Lichess URL:", lichessURL);
-      
-      // Open in new tab
       window.open(lichessURL, '_blank');
-    } else {
-      // When no FEN is available, try to use the Lichess import API with the full PGN
-      console.error("No FEN available in PGN:", cleanedPGN);
-      
-      // As a fallback, still try to open Lichess analysis page
-      window.open('https://lichess.org/analysis', '_blank');
-      
-      // Show error toast
-      throw new Error("Unable to extract FEN from the PGN. Opening Lichess analysis page instead.");
+      return;
     }
+    
+    // If no FEN found, open default analysis page
+    window.open('https://lichess.org/analysis', '_blank');
   } catch (error) {
     console.error("Error opening Lichess:", error);
     throw error;

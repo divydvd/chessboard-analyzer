@@ -3,7 +3,7 @@ import React from 'react';
 import { Copy, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { openPGNOnLichess, extractFENFromPGN } from '@/utils/chessAnalyzer';
+import { openPGNOnLichess } from '@/utils/chessAnalyzer';
 
 interface ResultsDisplayProps {
   pgn: string;
@@ -35,45 +35,11 @@ export function ResultsDisplay({ pgn }: ResultsDisplayProps) {
       openPGNOnLichess(pgn);
     } catch (err) {
       console.error('Failed to open Lichess:', err);
-      
-      // Extract FEN for manual fallback link
-      const fen = extractFENFromPGN(pgn);
-      
-      if (fen) {
-        // If we have a FEN, provide a direct link as fallback
-        const encodedFEN = fen.replace(/\s+/g, '_');
-        const lichessURL = `https://lichess.org/analysis/${encodedFEN}`;
-        
-        toast({
-          title: "Automatic Opening Failed",
-          description: (
-            <div>
-              <p>Failed to open Lichess automatically. Click <a href={lichessURL} target="_blank" rel="noreferrer" className="text-primary underline">here</a> to open manually.</p>
-            </div>
-          )
-        });
-      } else {
-        // Try to handle direct FENs
-        if (pgn.includes('/') && (pgn.includes(' w ') || pgn.includes(' b '))) {
-          const encodedFEN = pgn.trim().replace(/\s+/g, '_');
-          const lichessURL = `https://lichess.org/analysis/${encodedFEN}`;
-          
-          toast({
-            title: "Automatic Opening Failed",
-            description: (
-              <div>
-                <p>Failed to open Lichess automatically. Click <a href={lichessURL} target="_blank" rel="noreferrer" className="text-primary underline">here</a> to open manually.</p>
-              </div>
-            )
-          });
-        } else {
-          toast({
-            title: "Lichess Error",
-            description: "Failed to open the position on Lichess. Try copying the PGN and importing manually.",
-            variant: "destructive"
-          });
-        }
-      }
+      toast({
+        title: "Lichess Error",
+        description: "Failed to open the position on Lichess. Try copying the PGN and importing manually.",
+        variant: "destructive"
+      });
     }
   };
 
