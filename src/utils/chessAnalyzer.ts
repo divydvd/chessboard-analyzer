@@ -140,6 +140,7 @@ export function extractFENFromPGN(pgn: string): string | null {
  */
 async function analyzeWithDeepseek(base64Image: string, apiKey: string): Promise<AnalysisResult> {
   try {
+    console.log("Analyzing with DeepSeek...");
     const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -183,13 +184,16 @@ async function analyzeWithDeepseek(base64Image: string, apiKey: string): Promise
 
     // Extract PGN from response and clean it
     const responseText = data.choices[0].message.content;
+    console.log("DeepSeek raw response:", responseText);
     
     // First, try to extract a FEN directly
     const fen = extractFENFromPGN(responseText);
+    console.log("Extracted FEN:", fen);
     
     if (fen) {
       // If we have a direct FEN, create a minimal PGN with it
       const pgn = `[SetUp "1"]\n[FEN "${fen}"]\n\n*`;
+      console.log("Generated PGN from FEN:", pgn);
       return {
         success: true,
         pgn
@@ -224,6 +228,7 @@ async function analyzeWithDeepseek(base64Image: string, apiKey: string): Promise
  */
 async function analyzeWithOpenAI(base64Image: string, apiKey: string): Promise<AnalysisResult> {
   try {
+    console.log("Analyzing with OpenAI...");
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -270,13 +275,16 @@ async function analyzeWithOpenAI(base64Image: string, apiKey: string): Promise<A
 
     // Extract response text
     const responseText = data.choices[0].message.content;
+    console.log("OpenAI raw response:", responseText);
     
     // First, try to extract a FEN directly
     const fen = extractFENFromPGN(responseText);
+    console.log("Extracted FEN:", fen);
     
     if (fen) {
       // If we have a direct FEN, create a minimal PGN with it
       const pgn = `[SetUp "1"]\n[FEN "${fen}"]\n\n*`;
+      console.log("Generated PGN from FEN:", pgn);
       return {
         success: true,
         pgn
@@ -311,29 +319,23 @@ async function analyzeWithOpenAI(base64Image: string, apiKey: string): Promise<A
  */
 export function openPGNOnLichess(pgn: string): void {
   try {
+    console.log("Opening PGN on Lichess:", pgn);
     // Clean the PGN
     const cleanedPGN = pgn.trim();
     
-    // Check if it's a FEN string
-    if (cleanedPGN.includes('/') && (cleanedPGN.includes(' w ') || cleanedPGN.includes(' b '))) {
-      // This might be a direct FEN string
-      const encodedFEN = encodeURIComponent(cleanedPGN);
+    // Check if it's a FEN string directly
+    const fenExtracted = extractFENFromPGN(cleanedPGN);
+    if (fenExtracted) {
+      console.log("Using extracted FEN for Lichess:", fenExtracted);
+      const encodedFEN = encodeURIComponent(fenExtracted);
       const lichessURL = `https://lichess.org/analysis/${encodedFEN}`;
       window.open(lichessURL, '_blank');
       return;
     }
     
-    // Extract FEN from PGN if available
-    const fenMatch = cleanedPGN.match(/\[FEN\s+"([^"]+)"\]/);
-    if (fenMatch && fenMatch[1]) {
-      const encodedFEN = encodeURIComponent(fenMatch[1]);
-      const lichessURL = `https://lichess.org/analysis/${encodedFEN}`;
-      window.open(lichessURL, '_blank');
-      return;
-    }
-    
-    // If no FEN found, try posting to Lichess import
-    const lichessImportURL = "https://lichess.org/analysis";
+    // If we get here, try posting to Lichess import
+    console.log("No direct FEN found, trying import with full PGN");
+    const lichessImportURL = "https://lichess.org/import";
     
     // Create a form to post the PGN data
     const form = document.createElement('form');

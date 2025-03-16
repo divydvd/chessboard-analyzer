@@ -37,6 +37,7 @@ export function ImageAnalyzer() {
     setPgn(null);
     
     try {
+      console.log("Processing image file...");
       // Use the API key from the environment variables
       const result = await analyzeChessImage(file);
       
@@ -57,6 +58,7 @@ export function ImageAnalyzer() {
           });
         }
       } else {
+        console.log("Analysis succeeded with PGN:", result.pgn);
         setPgn(result.pgn);
         toast({
           title: "Analysis Complete",
@@ -91,6 +93,7 @@ export function ImageAnalyzer() {
     setPgn(null);
     
     try {
+      console.log("Processing image URL:", url);
       // First, fetch the image from the URL
       try {
         const response = await fetch(url);
