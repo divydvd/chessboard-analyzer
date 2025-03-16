@@ -335,7 +335,7 @@ export function openPGNOnLichess(pgn: string): void {
     
     // If we get here, try posting to Lichess import
     console.log("No direct FEN found, trying import with full PGN");
-    const lichessImportURL = "https://lichess.org/import";
+    const lichessImportURL = "https://lichess.org/analysis";
     
     // Create a form to post the PGN data
     const form = document.createElement('form');
