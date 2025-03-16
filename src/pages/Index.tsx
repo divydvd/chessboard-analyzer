@@ -1,15 +1,48 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { Grid3X3, ChevronRight, Image, Shield } from "lucide-react";
+import { Grid3X3, ChevronRight, Image, Shield, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { UserButton } from "@/components/auth/UserButton";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { AdBanner } from '@/components/ads/AdBanner';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ShieldAlert } from "lucide-react";
 
 const Index = () => {
   const { isSignedIn, isLoaded } = useAuth();
+  const [adBlockerDetected, setAdBlockerDetected] = useState(false);
+
+  const handleAdBlockDetected = () => {
+    setAdBlockerDetected(true);
+  };
+
+  if (adBlockerDetected) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="max-w-md w-full">
+          <Alert variant="destructive" className="mb-4">
+            <ShieldAlert className="h-4 w-4" />
+            <AlertTitle>Ad Blocker Detected</AlertTitle>
+            <AlertDescription>
+              <p className="mb-4">
+                ChessVision is supported by advertisements. Please disable your ad blocker to continue using our services.
+              </p>
+              <Button 
+                className="w-full" 
+                onClick={() => window.location.reload()}
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Refresh Page
+              </Button>
+            </AlertDescription>
+          </Alert>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -76,6 +109,12 @@ const Index = () => {
             </div>
           </motion.div>
 
+          <AdBanner 
+            position="top" 
+            className="w-full max-w-4xl mx-auto mb-14" 
+            onAdBlockDetected={handleAdBlockDetected}
+          />
+
           <motion.div
             className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20"
             initial={{ opacity: 0, y: 40 }}
@@ -106,9 +145,9 @@ const Index = () => {
               <div className="bg-primary/10 p-3 rounded-full w-fit mb-4">
                 <Shield className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="text-xl font-bold mb-2">Private & Secure</h3>
+              <h3 className="text-xl font-bold mb-2">Advanced Features</h3>
               <p className="text-muted-foreground">
-                Your API keys are stored securely and your chess positions remain private
+                Paste images directly, use image URLs, and analyze positions instantly
               </p>
             </div>
           </motion.div>
@@ -129,6 +168,12 @@ const Index = () => {
               </Button>
             </Link>
           </motion.div>
+          
+          <AdBanner 
+            position="bottom" 
+            className="w-full max-w-4xl mx-auto mt-20" 
+            onAdBlockDetected={handleAdBlockDetected}
+          />
         </div>
       </main>
 

@@ -1,15 +1,16 @@
 
 import React from 'react';
-import { Copy, ExternalLink } from 'lucide-react';
+import { Copy, ExternalLink, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { openPGNOnLichess } from '@/utils/chessAnalyzer';
 
 interface ResultsDisplayProps {
   pgn: string;
+  onReset: () => void;
 }
 
-export function ResultsDisplay({ pgn }: ResultsDisplayProps) {
+export function ResultsDisplay({ pgn, onReset }: ResultsDisplayProps) {
   const { toast } = useToast();
 
   const copyToClipboard = () => {
@@ -45,7 +46,14 @@ export function ResultsDisplay({ pgn }: ResultsDisplayProps) {
 
   return (
     <div>
-      <h3 className="text-lg font-medium mb-2">Analysis Result</h3>
+      <div className="flex justify-between items-center mb-2">
+        <h3 className="text-lg font-medium">Analysis Result</h3>
+        <Button variant="outline" size="sm" onClick={onReset}>
+          <RefreshCw className="h-4 w-4 mr-1" />
+          New Analysis
+        </Button>
+      </div>
+      
       <div className="bg-muted rounded-lg p-3 mb-4 max-h-[200px] overflow-y-auto">
         <pre className="text-xs whitespace-pre-wrap">{pgn}</pre>
       </div>

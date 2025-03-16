@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronLeft, Grid3X3 } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -7,8 +7,49 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { UserButton } from '@/components/auth/UserButton';
 import { ImageAnalyzer } from '@/components/ImageAnalyzer';
 import { AdBanner } from '@/components/ads/AdBanner';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ShieldAlert, RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const Analyze = () => {
+  const [adBlockerDetected, setAdBlockerDetected] = useState(false);
+
+  const handleAdBlockDetected = () => {
+    setAdBlockerDetected(true);
+  };
+
+  if (adBlockerDetected) {
+    return (
+      <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4">
+        <div className="max-w-md w-full">
+          <Alert variant="destructive" className="mb-4">
+            <ShieldAlert className="h-4 w-4" />
+            <AlertTitle>Ad Blocker Detected</AlertTitle>
+            <AlertDescription>
+              <p className="mb-4">
+                ChessVision is supported by advertisements. Please disable your ad blocker to continue using our services.
+              </p>
+              <Button 
+                className="w-full" 
+                onClick={() => window.location.reload()}
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Refresh Page
+              </Button>
+            </AlertDescription>
+          </Alert>
+          
+          <div className="text-center mt-6">
+            <Link to="/" className="text-sm hover:text-primary transition-colors">
+              <ChevronLeft className="h-4 w-4 inline mr-1" />
+              Return to Home
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="w-full px-8 py-6 flex justify-between items-center glass-morphism fixed top-0 z-50">
@@ -40,13 +81,21 @@ const Analyze = () => {
             Upload a chess position image and get instant PGN notation for analysis
           </p>
 
-          <AdBanner position="top" className="w-full max-w-md mb-6" />
+          <AdBanner 
+            position="top" 
+            className="w-full max-w-md mb-6" 
+            onAdBlockDetected={handleAdBlockDetected}
+          />
           
           <div className="w-full max-w-md">
             <ImageAnalyzer />
           </div>
           
-          <AdBanner position="bottom" className="w-full max-w-md mt-10" />
+          <AdBanner 
+            position="bottom" 
+            className="w-full max-w-md mt-10" 
+            onAdBlockDetected={handleAdBlockDetected}
+          />
         </motion.div>
       </main>
 

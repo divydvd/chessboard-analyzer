@@ -80,8 +80,10 @@ function createChessPrompt(): string {
   Extract ONLY the chess position from this image in FEN notation format.
   DO NOT suggest moves, analysis, or add any additional text.
   DO NOT add any game continuation or suggested moves.
-  ONLY return the raw FEN string representing the exact position shown, nothing else.
+  DO NOT analyze the position or describe it.
+  ONLY return the raw FEN string representing the exact position shown.
   If the board orientation is ambiguous, assume White is playing from the bottom.
+  Return ONLY the FEN string with no additional words or characters.
   `;
 }
 
@@ -315,7 +317,7 @@ export function openPGNOnLichess(pgn: string): void {
     // Check if it's a FEN string
     if (cleanedPGN.includes('/') && (cleanedPGN.includes(' w ') || cleanedPGN.includes(' b '))) {
       // This might be a direct FEN string
-      const encodedFEN = cleanedPGN.replace(/\s+/g, '_');
+      const encodedFEN = encodeURIComponent(cleanedPGN);
       const lichessURL = `https://lichess.org/analysis/${encodedFEN}`;
       window.open(lichessURL, '_blank');
       return;
@@ -324,14 +326,14 @@ export function openPGNOnLichess(pgn: string): void {
     // Extract FEN from PGN if available
     const fenMatch = cleanedPGN.match(/\[FEN\s+"([^"]+)"\]/);
     if (fenMatch && fenMatch[1]) {
-      const encodedFEN = fenMatch[1].replace(/\s+/g, '_');
+      const encodedFEN = encodeURIComponent(fenMatch[1]);
       const lichessURL = `https://lichess.org/analysis/${encodedFEN}`;
       window.open(lichessURL, '_blank');
       return;
     }
     
     // If no FEN found, try posting to Lichess import
-    const lichessImportURL = "https://lichess.org/analysis/paste";
+    const lichessImportURL = "https://lichess.org/analysis";
     
     // Create a form to post the PGN data
     const form = document.createElement('form');
