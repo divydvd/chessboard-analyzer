@@ -1,7 +1,5 @@
-
 // Configuration
 const API_ENDPOINT = 'https://api.deepseek.com/vision/analyze';
-const LICHESS_IMPORT_URL = 'https://lichess.org/api/import';
 const API_KEY = ''; // To be set by user in chrome.storage.local
 
 // Initialize the extension
@@ -200,10 +198,33 @@ function extractPGNFromResponse(text) {
 // Import PGN to Lichess for analysis
 async function importToLichess(pgn) {
   try {
+    // Try to extract a FEN string from the PGN
+    const fenMatch = pgn.match(/\[FEN\s+"([^"]+)"\]/);
+    let fenString = null;
+    
+    if (fenMatch && fenMatch[1]) {
+      fenString = fenMatch[1];
+    } else {
+      // Try direct FEN pattern match
+      const directFenMatch = pgn.match(/([rnbqkpRNBQKP1-8]+\/){7}[rnbqkpRNBQKP1-8]+\s[wb]\s[KQkq-]+\s[a-h\-][1-8\-]/);
+      if (directFenMatch) {
+        fenString = directFenMatch[0];
+      }
+    }
+    
+    if (fenString) {
+      // If we have a FEN string, use it directly in the URL
+      const encodedFEN = encodeURIComponent(fenString);
+      const lichessURL = `https://lichess.org/analysis/${encodedFEN}`;
+      chrome.tabs.create({ url: lichessURL });
+      return;
+    }
+    
+    // If no FEN, use form submission
     const formData = new FormData();
     formData.append('pgn', pgn);
     
-    const response = await fetch(LICHESS_IMPORT_URL, {
+    const response = await fetch("https://lichess.org/analysis", {
       method: 'POST',
       body: formData
     });

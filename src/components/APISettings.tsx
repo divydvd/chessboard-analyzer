@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -18,11 +18,11 @@ const getApiConfig = async () => {
   };
 };
 
-const saveApiConfig = async () => {
+const saveApiConfig = async (provider: AIProvider, apiKey: string) => {
   return true;
 };
 
-const validateApiKey = async () => {
+const validateApiKey = async (apiKey: string) => {
   return {
     valid: true,
     message: 'API Key is valid'

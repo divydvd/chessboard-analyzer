@@ -1,4 +1,3 @@
-
 import { toast } from "@/components/ui/use-toast";
 
 // Supported AI providers
@@ -329,18 +328,19 @@ export function openPGNOnLichess(pgn: string): void {
       console.log("Using extracted FEN for Lichess:", fenExtracted);
       const encodedFEN = encodeURIComponent(fenExtracted);
       const lichessURL = `https://lichess.org/analysis/${encodedFEN}`;
+      console.log("Opening Lichess URL:", lichessURL);
       window.open(lichessURL, '_blank');
       return;
     }
     
     // If we get here, try posting to Lichess import
     console.log("No direct FEN found, trying import with full PGN");
-    const lichessImportURL = "https://lichess.org/analysis";
+    const lichessAnalysisURL = "https://lichess.org/analysis";
     
     // Create a form to post the PGN data
     const form = document.createElement('form');
     form.method = 'POST';
-    form.action = lichessImportURL;
+    form.action = lichessAnalysisURL;
     form.target = '_blank';
     
     const input = document.createElement('input');
