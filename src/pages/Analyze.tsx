@@ -1,13 +1,12 @@
 
-import React, { useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ImageAnalyzer } from '@/components/ImageAnalyzer';
-import { APISettings } from '@/components/APISettings';
+import React from 'react';
 import { motion } from 'framer-motion';
-import { ChevronLeft, Settings, Grid3X3 } from 'lucide-react';
+import { ChevronLeft, Grid3X3 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { UserButton } from '@/components/auth/UserButton';
+import { ImageAnalyzer } from '@/components/ImageAnalyzer';
+import { AdBanner } from '@/components/ads/AdBanner';
 
 const Analyze = () => {
   return (
@@ -41,18 +40,13 @@ const Analyze = () => {
             Upload a chess position image and get instant PGN notation for analysis
           </p>
 
-          <Tabs defaultValue="analyze" className="w-full max-w-md">
-            <TabsList className="grid grid-cols-2 mb-8">
-              <TabsTrigger value="analyze">Analyze Position</TabsTrigger>
-              <TabsTrigger value="settings">API Settings</TabsTrigger>
-            </TabsList>
-            <TabsContent value="analyze">
-              <ImageAnalyzer />
-            </TabsContent>
-            <TabsContent value="settings">
-              <APISettings />
-            </TabsContent>
-          </Tabs>
+          <AdBanner position="top" className="w-full max-w-md mb-6" />
+          
+          <div className="w-full max-w-md">
+            <ImageAnalyzer />
+          </div>
+          
+          <AdBanner position="bottom" className="w-full max-w-md mt-10" />
         </motion.div>
       </main>
 

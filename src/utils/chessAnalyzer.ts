@@ -1,3 +1,4 @@
+
 import { toast } from "@/components/ui/use-toast";
 
 // Supported AI providers
@@ -18,8 +19,7 @@ export interface AnalyzerConfig {
  * Analyzes a chess image and returns the PGN notation
  */
 export async function analyzeChessImage(
-  imageData: string | File, 
-  config: AnalyzerConfig
+  imageData: string | File
 ): Promise<AnalysisResult> {
   try {
     // Convert File to base64 if needed
@@ -36,15 +36,19 @@ export async function analyzeChessImage(
       ? base64Image.split("base64,")[1] 
       : base64Image;
     
-    // Process image based on provider
-    if (config.provider === "deepseek") {
-      return analyzeWithDeepseek(base64Content, config.apiKey);
-    } else if (config.provider === "openai") {
-      return analyzeWithOpenAI(base64Content, config.apiKey);
+    // Check for API keys in environment variables
+    const openAIKey = import.meta.env.VITE_OPENAI_API_KEY;
+    const deepseekKey = import.meta.env.VITE_DEEPSEEK_API_KEY;
+    
+    // Choose provider based on available keys
+    if (deepseekKey) {
+      return analyzeWithDeepseek(base64Content, deepseekKey);
+    } else if (openAIKey) {
+      return analyzeWithOpenAI(base64Content, openAIKey);
     } else {
       return {
         success: false,
-        error: "Unsupported AI provider"
+        error: "No API configuration found. Please contact support."
       };
     }
   } catch (error) {
@@ -130,14 +134,6 @@ export function extractFENFromPGN(pgn: string): string | null {
 }
 
 /**
- * Encode FEN for URL use
- */
-function encodeFENForURL(fen: string): string {
-  // Replace spaces with underscores for URL encoding
-  return fen.replace(/\s+/g, '_');
-}
-
-/**
  * Process image with DeepSeek Vision API
  */
 async function analyzeWithDeepseek(base64Image: string, apiKey: string): Promise<AnalysisResult> {
@@ -173,7 +169,7 @@ async function analyzeWithDeepseek(base64Image: string, apiKey: string): Promise
       if (data.error?.message?.includes("quota") || data.error?.message?.includes("exceeded")) {
         return {
           success: false,
-          error: "You've exceeded your DeepSeek API quota. Please check your billing details or try the OpenAI option."
+          error: "You've exceeded your API quota. Please try again later or contact support."
         };
       }
       
@@ -260,7 +256,7 @@ async function analyzeWithOpenAI(base64Image: string, apiKey: string): Promise<A
       if (data.error?.message?.includes("quota") || data.error?.message?.includes("exceeded") || data.error?.type === "insufficient_quota") {
         return {
           success: false,
-          error: "You've exceeded your OpenAI API quota. Please add billing information in your OpenAI account or try the DeepSeek option."
+          error: "You've exceeded your API quota. Please try again later or contact support."
         };
       }
       
@@ -309,6 +305,56 @@ async function analyzeWithOpenAI(base64Image: string, apiKey: string): Promise<A
 }
 
 /**
+ * Open the PGN on Lichess for analysis
+ */
+export function openPGNOnLichess(pgn: string): void {
+  try {
+    // Clean the PGN
+    const cleanedPGN = pgn.trim();
+    
+    // Check if it's a FEN string
+    if (cleanedPGN.includes('/') && (cleanedPGN.includes(' w ') || cleanedPGN.includes(' b '))) {
+      // This might be a direct FEN string
+      const encodedFEN = cleanedPGN.replace(/\s+/g, '_');
+      const lichessURL = `https://lichess.org/analysis/${encodedFEN}`;
+      window.open(lichessURL, '_blank');
+      return;
+    }
+    
+    // Extract FEN from PGN if available
+    const fenMatch = cleanedPGN.match(/\[FEN\s+"([^"]+)"\]/);
+    if (fenMatch && fenMatch[1]) {
+      const encodedFEN = fenMatch[1].replace(/\s+/g, '_');
+      const lichessURL = `https://lichess.org/analysis/${encodedFEN}`;
+      window.open(lichessURL, '_blank');
+      return;
+    }
+    
+    // If no FEN found, try posting to Lichess import
+    const lichessImportURL = "https://lichess.org/analysis/paste";
+    
+    // Create a form to post the PGN data
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = lichessImportURL;
+    form.target = '_blank';
+    
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'pgn';
+    input.value = cleanedPGN;
+    
+    form.appendChild(input);
+    document.body.appendChild(form);
+    form.submit();
+    document.body.removeChild(form);
+  } catch (error) {
+    console.error("Error opening Lichess:", error);
+    throw error;
+  }
+}
+
+/**
  * Extract PGN from API response
  */
 function extractPGNFromResponse(response: string): string | null {
@@ -339,175 +385,4 @@ function extractPGNFromResponse(response: string): string | null {
   
   // If all else fails, just return the response as-is
   return response.trim();
-}
-
-/**
- * Open the PGN on Lichess for analysis
- */
-export function openPGNOnLichess(pgn: string): void {
-  try {
-    // Clean the PGN
-    const cleanedPGN = pgn.trim();
-    
-    // Check if it's a FEN string
-    if (cleanedPGN.includes('/') && (cleanedPGN.includes(' w ') || cleanedPGN.includes(' b '))) {
-      // This might be a direct FEN string
-      const encodedFEN = cleanedPGN.replace(/\s+/g, '_');
-      const lichessURL = `https://lichess.org/analysis/${encodedFEN}`;
-      window.open(lichessURL, '_blank');
-      return;
-    }
-    
-    // Extract FEN from PGN if available
-    const fenMatch = cleanedPGN.match(/\[FEN\s+"([^"]+)"\]/);
-    if (fenMatch && fenMatch[1]) {
-      const encodedFEN = fenMatch[1].replace(/\s+/g, '_');
-      const lichessURL = `https://lichess.org/analysis/${encodedFEN}`;
-      window.open(lichessURL, '_blank');
-      return;
-    }
-    
-    // If no FEN found, open default analysis page
-    window.open('https://lichess.org/analysis', '_blank');
-  } catch (error) {
-    console.error("Error opening Lichess:", error);
-    throw error;
-  }
-}
-
-/**
- * Validate an API key with a simple test request
- */
-export async function validateApiKey(provider: AIProvider, apiKey: string): Promise<{valid: boolean, message: string}> {
-  try {
-    if (!apiKey || apiKey.trim() === '') {
-      return { valid: false, message: "API key cannot be empty" };
-    }
-    
-    if (provider === "deepseek") {
-      // Test DeepSeek API with a minimal request
-      const response = await fetch("https://api.deepseek.com/v1/models", {
-        method: "GET",
-        headers: {
-          "Authorization": `Bearer ${apiKey}`
-        }
-      });
-      
-      const data = await response.json();
-      
-      if (response.ok) {
-        return { valid: true, message: "DeepSeek API key is valid" };
-      } else {
-        return { 
-          valid: false, 
-          message: data.error?.message || "Invalid DeepSeek API key" 
-        };
-      }
-    } else if (provider === "openai") {
-      // Test OpenAI API with a minimal request
-      const response = await fetch("https://api.openai.com/v1/models", {
-        method: "GET",
-        headers: {
-          "Authorization": `Bearer ${apiKey}`
-        }
-      });
-      
-      const data = await response.json();
-      
-      if (response.ok) {
-        return { valid: true, message: "OpenAI API key is valid" };
-      } else {
-        return { 
-          valid: false, 
-          message: data.error?.message || "Invalid OpenAI API key" 
-        };
-      }
-    }
-    
-    return { valid: false, message: "Unsupported API provider" };
-  } catch (error) {
-    console.error("Error validating API key:", error);
-    return { 
-      valid: false, 
-      message: error instanceof Error ? error.message : "Error validating API key" 
-    };
-  }
-}
-
-/**
- * Get stored API configuration
- */
-export async function getApiConfig(): Promise<AnalyzerConfig | null> {
-  try {
-    // Check for environment variables first
-    const envOpenAIKey = import.meta.env.VITE_OPENAI_API_KEY;
-    const envDeepseekKey = import.meta.env.VITE_DEEPSEEK_API_KEY;
-    
-    // If environment variables are set, use them
-    if (envOpenAIKey) {
-      return { provider: "openai", apiKey: envOpenAIKey };
-    }
-    
-    if (envDeepseekKey) {
-      return { provider: "deepseek", apiKey: envDeepseekKey };
-    }
-    
-    // Otherwise fall back to stored keys
-    // For browser extension
-    if (typeof chrome !== 'undefined' && chrome.storage) {
-      return new Promise((resolve) => {
-        chrome.storage.local.get(['provider', 'apiKey'], (result) => {
-          if (result.provider && result.apiKey) {
-            resolve({
-              provider: result.provider as AIProvider,
-              apiKey: result.apiKey
-            });
-          } else {
-            resolve(null);
-          }
-        });
-      });
-    } 
-    // For web app
-    else {
-      const provider = localStorage.getItem('chessVision_provider') as AIProvider;
-      const apiKey = localStorage.getItem('chessVision_apiKey');
-      
-      if (provider && apiKey) {
-        return { provider, apiKey };
-      }
-      return null;
-    }
-  } catch (error) {
-    console.error("Error getting API config:", error);
-    return null;
-  }
-}
-
-/**
- * Save API configuration
- */
-export async function saveApiConfig(config: AnalyzerConfig): Promise<boolean> {
-  try {
-    // For browser extension
-    if (typeof chrome !== 'undefined' && chrome.storage) {
-      return new Promise((resolve) => {
-        chrome.storage.local.set({
-          provider: config.provider,
-          apiKey: config.apiKey
-        }, () => {
-          resolve(true);
-        });
-      });
-    } 
-    // For web app
-    else {
-      localStorage.setItem('chessVision_provider', config.provider);
-      localStorage.setItem('chessVision_apiKey', config.apiKey);
-      return true;
-    }
-  } catch (error) {
-    console.error("Error saving API config:", error);
-    return false;
-  }
 }

@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { analyzeChessImage, getApiConfig } from '@/utils/chessAnalyzer';
+import { analyzeChessImage } from '@/utils/chessAnalyzer';
 import { UploadArea } from '@/components/chess/UploadArea';
 import { ProcessingState } from '@/components/chess/ProcessingState';
 import { ErrorDisplay } from '@/components/chess/ErrorDisplay';
@@ -22,27 +22,15 @@ export function ImageAnalyzer() {
     setPgn(null);
     
     try {
-      const config = await getApiConfig();
-      
-      if (!config) {
-        setError('API configuration is missing. Please set up your API key in settings.');
-        toast({
-          title: "Configuration Missing",
-          description: "Please set up your API key in settings",
-          variant: "destructive"
-        });
-        setIsProcessing(false);
-        return;
-      }
-      
-      const result = await analyzeChessImage(file, config);
+      // Use the API key from the environment variables
+      const result = await analyzeChessImage(file);
       
       if (!result.success || !result.pgn) {
         if (result.error?.includes("quota") || result.error?.includes("exceeded")) {
           setError(`API Quota Exceeded: ${result.error}`);
           toast({
             title: "API Quota Error",
-            description: "You've exceeded your API quota. Please check billing details.",
+            description: "You've exceeded your API quota. Please check our pricing plans.",
             variant: "destructive"
           });
         } else {
@@ -79,19 +67,6 @@ export function ImageAnalyzer() {
     setPgn(null);
     
     try {
-      const config = await getApiConfig();
-      
-      if (!config) {
-        setError('API configuration is missing. Please set up your API key in settings.');
-        toast({
-          title: "Configuration Missing",
-          description: "Please set up your API key in settings",
-          variant: "destructive"
-        });
-        setIsProcessing(false);
-        return;
-      }
-      
       // First, fetch the image from the URL
       try {
         const response = await fetch(url);
@@ -110,15 +85,15 @@ export function ImageAnalyzer() {
         // Convert blob to File object
         const file = new File([blob], "chess-image.jpg", { type: blob.type });
         
-        // Process the image using the existing function
-        const result = await analyzeChessImage(file, config);
+        // Process the image
+        const result = await analyzeChessImage(file);
         
         if (!result.success || !result.pgn) {
           if (result.error?.includes("quota") || result.error?.includes("exceeded")) {
             setError(`API Quota Exceeded: ${result.error}`);
             toast({
               title: "API Quota Error",
-              description: "You've exceeded your API quota. Please check billing details.",
+              description: "You've exceeded your API quota. Please check our pricing plans.",
               variant: "destructive"
             });
           } else {
@@ -164,7 +139,7 @@ export function ImageAnalyzer() {
   };
 
   return (
-    <Card className="p-6 w-full max-w-md mx-auto">
+    <Card className="p-6 w-full">
       {!pgn && !isProcessing && !error && (
         <Tabs defaultValue="upload" className="w-full">
           <TabsList className="grid grid-cols-2 mb-6">
