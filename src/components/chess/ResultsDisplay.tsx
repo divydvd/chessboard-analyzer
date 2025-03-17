@@ -3,7 +3,7 @@ import React from 'react';
 import { Copy, ExternalLink, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { openPGNOnLichess } from '@/utils/chessAnalyzer';
+import { openPGNOnLichess, extractFENFromPGN } from '@/utils/chessAnalyzer';
 
 interface ResultsDisplayProps {
   pgn: string;
@@ -33,6 +33,10 @@ export function ResultsDisplay({ pgn, onReset }: ResultsDisplayProps) {
 
   const analyzeOnLichess = () => {
     try {
+      // Extract FEN directly here to see what's happening
+      const fen = extractFENFromPGN(pgn);
+      console.log("Extracted FEN before opening Lichess:", fen);
+      
       openPGNOnLichess(pgn);
     } catch (err) {
       console.error('Failed to open Lichess:', err);

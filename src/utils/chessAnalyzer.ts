@@ -322,18 +322,20 @@ export function openPGNOnLichess(pgn: string): void {
     
     // Try to extract a FEN from the PGN
     const fen = extractFENFromPGN(pgn);
+    console.log("Extracted FEN to open on Lichess:", fen);
     
     if (fen) {
       // Encode the FEN for URL (replace spaces with underscores)
       const encodedFEN = fen.replace(/\s+/g, '_');
       const lichessURL = `https://lichess.org/analysis/${encodedFEN}`;
+      
       console.log("Opening Lichess with FEN URL:", lichessURL);
       window.open(lichessURL, '_blank');
       return;
     }
     
-    // If no FEN found, create a form to submit the PGN to Lichess
-    console.log("No FEN found in PGN, submitting PGN via form");
+    // If no FEN found, create a form to submit the PGN to Lichess as a fallback
+    console.log("No FEN found in PGN, submitting via form post to paste page as fallback");
     const form = document.createElement('form');
     form.method = 'POST';
     form.action = 'https://lichess.org/paste';
