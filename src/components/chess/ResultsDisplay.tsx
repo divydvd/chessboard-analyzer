@@ -3,7 +3,7 @@ import React from 'react';
 import { Copy, ExternalLink, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { openPGNOnLichess, extractFENFromPGN } from '@/utils/chessAnalyzer';
+import { extractFENFromPGN } from '@/utils/chessAnalyzer';
 
 interface ResultsDisplayProps {
   pgn: string;
@@ -33,11 +33,35 @@ export function ResultsDisplay({ pgn, onReset }: ResultsDisplayProps) {
 
   const analyzeOnLichess = () => {
     try {
-      // Extract FEN directly here to see what's happening
+      // Extract FEN directly
       const fen = extractFENFromPGN(pgn);
       console.log("Extracted FEN before opening Lichess:", fen);
       
-      openPGNOnLichess(pgn);
+      if (fen) {
+        // Encode the FEN for URL (replace spaces with underscores)
+        const encodedFEN = fen.replace(/\s+/g, '_');
+        const lichessURL = `https://lichess.org/analysis/${encodedFEN}`;
+        
+        console.log("Opening Lichess with URL:", lichessURL);
+        window.open(lichessURL, '_blank');
+      } else {
+        // If no FEN found, use the paste page as fallback
+        console.log("No FEN found, redirecting to paste page");
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = 'https://lichess.org/paste';
+        form.target = '_blank';
+        
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'pgn';
+        input.value = pgn;
+        
+        form.appendChild(input);
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
+      }
     } catch (err) {
       console.error('Failed to open Lichess:', err);
       toast({

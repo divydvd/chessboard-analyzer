@@ -107,30 +107,37 @@ function cleanPGN(pgn: string): string {
  * Export this function so it can be used in the components
  */
 export function extractFENFromPGN(pgn: string): string | null {
+  console.log("Extracting FEN from PGN:", pgn);
+  
   // First, check if the input might be a direct FEN string
   const directFenPattern = /^([rnbqkpRNBQKP1-8]+\/){7}[rnbqkpRNBQKP1-8]+\s[wb]\s[KQkq-]+\s[a-h\-][1-8\-]/;
   if (directFenPattern.test(pgn.trim())) {
+    console.log("Direct FEN pattern match found");
     return pgn.trim();
   }
   
   // Try to find a complete FEN string directly in the text
   const directFenMatch = pgn.match(/([rnbqkpRNBQKP1-8]+\/){7}[rnbqkpRNBQKP1-8]+\s[wb]\s[KQkq-]+\s[a-h\-][1-8\-]/);
   if (directFenMatch && directFenMatch[0]) {
+    console.log("Complete FEN string found in text:", directFenMatch[0]);
     return directFenMatch[0];
   }
   
   // Look for FEN tag in the PGN
   const fenMatch = pgn.match(/\[FEN\s+"([^"]+)"\]/);
   if (fenMatch && fenMatch[1]) {
+    console.log("FEN tag found in PGN:", fenMatch[1]);
     return fenMatch[1];
   }
 
   // Look for FEN tag without quotes
   const fenMatchNoQuotes = pgn.match(/\[FEN\s+([^\]]+)\]/);
   if (fenMatchNoQuotes && fenMatchNoQuotes[1]) {
+    console.log("FEN tag without quotes found:", fenMatchNoQuotes[1].trim());
     return fenMatchNoQuotes[1].trim();
   }
   
+  console.log("No FEN found in PGN");
   return null;
 }
 
@@ -315,41 +322,38 @@ async function analyzeWithOpenAI(base64Image: string, apiKey: string): Promise<A
 
 /**
  * Open the PGN on Lichess for analysis
+ * This function is now handled directly in the ResultsDisplay component
+ * but we keep it here to avoid breaking any other code that might use it
  */
 export function openPGNOnLichess(pgn: string): void {
   try {
-    console.log("Opening PGN on Lichess:", pgn);
+    console.log("This function is deprecated. Opening PGN handled in ResultsDisplay component.");
     
-    // Try to extract a FEN from the PGN
+    // Extract FEN from the PGN
     const fen = extractFENFromPGN(pgn);
-    console.log("Extracted FEN to open on Lichess:", fen);
     
     if (fen) {
       // Encode the FEN for URL (replace spaces with underscores)
       const encodedFEN = fen.replace(/\s+/g, '_');
       const lichessURL = `https://lichess.org/analysis/${encodedFEN}`;
-      
-      console.log("Opening Lichess with FEN URL:", lichessURL);
       window.open(lichessURL, '_blank');
-      return;
+    } else {
+      // Fallback to paste page
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = 'https://lichess.org/paste';
+      form.target = '_blank';
+      
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'pgn';
+      input.value = pgn;
+      
+      form.appendChild(input);
+      document.body.appendChild(form);
+      form.submit();
+      document.body.removeChild(form);
     }
-    
-    // If no FEN found, create a form to submit the PGN to Lichess as a fallback
-    console.log("No FEN found in PGN, submitting via form post to paste page as fallback");
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = 'https://lichess.org/paste';
-    form.target = '_blank';
-    
-    const input = document.createElement('input');
-    input.type = 'hidden';
-    input.name = 'pgn';
-    input.value = pgn;
-    
-    form.appendChild(input);
-    document.body.appendChild(form);
-    form.submit();
-    document.body.removeChild(form);
   } catch (error) {
     console.error("Error opening Lichess:", error);
     throw error;
@@ -388,4 +392,3 @@ function extractPGNFromResponse(response: string): string | null {
   // If all else fails, just return the response as-is
   return response.trim();
 }
-
