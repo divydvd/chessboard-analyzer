@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -18,11 +17,11 @@ const getApiConfig = async () => {
   };
 };
 
-const saveApiConfig = async (provider: AIProvider, apiKey: string) => {
+const saveApiConfig = async (config: { provider: AIProvider, apiKey: string }) => {
   return true;
 };
 
-const validateApiKey = async (apiKey: string) => {
+const validateApiKey = async (provider: AIProvider, apiKey: string) => {
   return {
     valid: true,
     message: 'API Key is valid'

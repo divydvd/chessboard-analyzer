@@ -213,34 +213,18 @@ async function importToLichess(pgn) {
     }
     
     if (fenString) {
-      // If we have a FEN string, use it directly in the URL
-      const encodedFEN = encodeURIComponent(fenString);
+      // Encode the FEN for URL (replace spaces with underscores)
+      const encodedFEN = fenString.replace(/\s+/g, '_');
       const lichessURL = `https://lichess.org/analysis/${encodedFEN}`;
+      
+      console.log("Opening Lichess with FEN URL:", lichessURL);
       chrome.tabs.create({ url: lichessURL });
       return;
     }
     
-    // If no FEN, use form submission
-    const formData = new FormData();
-    formData.append('pgn', pgn);
-    
-    const response = await fetch("https://lichess.org/analysis", {
-      method: 'POST',
-      body: formData
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Lichess import failed with status ${response.status}`);
-    }
-    
-    const result = await response.json();
-    
-    // Open the analysis URL in a new tab
-    if (result.url) {
-      chrome.tabs.create({ url: result.url });
-    } else {
-      throw new Error('No analysis URL returned from Lichess');
-    }
+    // If no FEN, open default analysis page
+    console.log("No FEN found in PGN, opening default analysis page");
+    chrome.tabs.create({ url: 'https://lichess.org/analysis' });
   } catch (error) {
     console.error('Lichess import failed:', error);
     // Show error page or notification

@@ -322,36 +322,21 @@ export function openPGNOnLichess(pgn: string): void {
     // Clean the PGN
     const cleanedPGN = pgn.trim();
     
-    // Check if it's a FEN string directly
-    const fenExtracted = extractFENFromPGN(cleanedPGN);
-    if (fenExtracted) {
-      console.log("Using extracted FEN for Lichess:", fenExtracted);
-      const encodedFEN = encodeURIComponent(fenExtracted);
+    // Try to extract a FEN from the PGN
+    const fen = extractFENFromPGN(cleanedPGN);
+    
+    if (fen) {
+      // Encode the FEN for URL (replace spaces with underscores)
+      const encodedFEN = fen.replace(/\s+/g, '_');
       const lichessURL = `https://lichess.org/analysis/${encodedFEN}`;
       console.log("Opening Lichess URL:", lichessURL);
       window.open(lichessURL, '_blank');
       return;
     }
     
-    // If we get here, try posting to Lichess import
-    console.log("No direct FEN found, trying import with full PGN");
-    const lichessAnalysisURL = "https://lichess.org/analysis";
-    
-    // Create a form to post the PGN data
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = lichessAnalysisURL;
-    form.target = '_blank';
-    
-    const input = document.createElement('input');
-    input.type = 'hidden';
-    input.name = 'pgn';
-    input.value = cleanedPGN;
-    
-    form.appendChild(input);
-    document.body.appendChild(form);
-    form.submit();
-    document.body.removeChild(form);
+    // If no FEN found, fallback to simple analysis page
+    console.log("No FEN found in PGN, opening default analysis page");
+    window.open('https://lichess.org/analysis', '_blank');
   } catch (error) {
     console.error("Error opening Lichess:", error);
     throw error;
