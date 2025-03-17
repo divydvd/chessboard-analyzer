@@ -1,4 +1,3 @@
-
 // Configuration
 const API_ENDPOINT = 'https://api.deepseek.com/vision/analyze';
 const API_KEY = ''; // To be set by user in chrome.storage.local

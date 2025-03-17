@@ -1,4 +1,3 @@
-
 import { toast } from "@/components/ui/use-toast";
 
 // Supported AI providers
@@ -328,7 +327,7 @@ export function openPGNOnLichess(pgn: string): void {
       // Encode the FEN for URL (replace spaces with underscores)
       const encodedFEN = fen.replace(/\s+/g, '_');
       const lichessURL = `https://lichess.org/analysis/${encodedFEN}`;
-      console.log("Opening Lichess URL:", lichessURL);
+      console.log("Opening Lichess with FEN URL:", lichessURL);
       window.open(lichessURL, '_blank');
       return;
     }
@@ -387,3 +386,4 @@ function extractPGNFromResponse(response: string): string | null {
   // If all else fails, just return the response as-is
   return response.trim();
 }
+
