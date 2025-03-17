@@ -1,3 +1,4 @@
+
 import { toast } from "@/components/ui/use-toast";
 
 // Supported AI providers
@@ -319,11 +320,9 @@ async function analyzeWithOpenAI(base64Image: string, apiKey: string): Promise<A
 export function openPGNOnLichess(pgn: string): void {
   try {
     console.log("Opening PGN on Lichess:", pgn);
-    // Clean the PGN
-    const cleanedPGN = pgn.trim();
     
     // Try to extract a FEN from the PGN
-    const fen = extractFENFromPGN(cleanedPGN);
+    const fen = extractFENFromPGN(pgn);
     
     if (fen) {
       // Encode the FEN for URL (replace spaces with underscores)
@@ -334,9 +333,22 @@ export function openPGNOnLichess(pgn: string): void {
       return;
     }
     
-    // If no FEN found, fallback to simple analysis page
-    console.log("No FEN found in PGN, opening default analysis page");
-    window.open('https://lichess.org/analysis', '_blank');
+    // If no FEN found, create a form to submit the PGN to Lichess
+    console.log("No FEN found in PGN, submitting PGN via form");
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = 'https://lichess.org/paste';
+    form.target = '_blank';
+    
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'pgn';
+    input.value = pgn;
+    
+    form.appendChild(input);
+    document.body.appendChild(form);
+    form.submit();
+    document.body.removeChild(form);
   } catch (error) {
     console.error("Error opening Lichess:", error);
     throw error;

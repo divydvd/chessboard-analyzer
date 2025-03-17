@@ -1,3 +1,4 @@
+
 // Configuration
 const API_ENDPOINT = 'https://api.deepseek.com/vision/analyze';
 const API_KEY = ''; // To be set by user in chrome.storage.local
@@ -222,9 +223,23 @@ async function importToLichess(pgn) {
       return;
     }
     
-    // If no FEN, open default analysis page
-    console.log("No FEN found in PGN, opening default analysis page");
-    chrome.tabs.create({ url: 'https://lichess.org/analysis' });
+    // If no FEN found, submit PGN to Lichess paste endpoint
+    console.log("No FEN found in PGN, submitting via form post");
+    
+    // Create a data object for the form submission
+    const formData = new FormData();
+    formData.append('pgn', pgn);
+    
+    chrome.tabs.create({ 
+      url: 'https://lichess.org/paste'
+    }, tab => {
+      // After the tab is created, we'll inject a content script to submit the form
+      chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        func: submitPgnToLichess,
+        args: [pgn]
+      });
+    });
   } catch (error) {
     console.error('Lichess import failed:', error);
     // Show error page or notification
@@ -233,4 +248,22 @@ async function importToLichess(pgn) {
            '?error=' + encodeURIComponent('Failed to import to Lichess: ' + error.message)
     });
   }
+}
+
+// Function to be injected into the Lichess page to submit PGN
+function submitPgnToLichess(pgn) {
+  // Wait for the page to load
+  window.addEventListener('load', function() {
+    // Find the textarea for PGN input
+    const textarea = document.querySelector('textarea[name="pgn"]');
+    if (textarea) {
+      textarea.value = pgn;
+      
+      // Find and click the submit button
+      const submitButton = document.querySelector('button[type="submit"]');
+      if (submitButton) {
+        submitButton.click();
+      }
+    }
+  });
 }
