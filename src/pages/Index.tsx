@@ -1,18 +1,14 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { Grid3X3, ChevronRight, Image, Shield, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { UserButton } from "@/components/auth/UserButton";
-import { useAuth } from "@/components/auth/AuthProvider";
 import { AdBanner } from '@/components/ads/AdBanner';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ShieldAlert } from "lucide-react";
 
 const Index = () => {
-  const { isSignedIn, isLoaded } = useAuth();
   const [adBlockerDetected, setAdBlockerDetected] = useState(false);
 
   const handleAdBlockDetected = () => {
@@ -52,34 +48,12 @@ const Index = () => {
           <h1 className="text-xl font-medium">ChessVision</h1>
         </div>
         <div className="flex items-center space-x-4">
-          {isLoaded && (
-            <>
-              {isSignedIn ? (
-                <>
-                  <Link to="/analyze">
-                    <Button variant="outline" size="sm">
-                      Go to App
-                      <ChevronRight className="h-4 w-4 ml-1" />
-                    </Button>
-                  </Link>
-                  <UserButton />
-                </>
-              ) : (
-                <>
-                  <Link to="/login">
-                    <Button variant="outline" size="sm">
-                      Sign In
-                    </Button>
-                  </Link>
-                  <Link to="/signup">
-                    <Button size="sm">
-                      Sign Up
-                    </Button>
-                  </Link>
-                </>
-              )}
-            </>
-          )}
+          <Link to="/analyze">
+            <Button variant="outline" size="sm">
+              Go to Analyzer
+              <ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
+          </Link>
           <ThemeToggle />
         </div>
       </header>
@@ -100,9 +74,9 @@ const Index = () => {
               Upload a chess position image and get instant PGN notation for analysis on Lichess
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link to={isSignedIn ? "/analyze" : "/signup"}>
+              <Link to="/analyze">
                 <Button size="lg" className="text-base">
-                  {isSignedIn ? "Analyze Position" : "Get Started"}
+                  Analyze Position
                   <ChevronRight className="h-4 w-4 ml-1" />
                 </Button>
               </Link>
@@ -162,9 +136,9 @@ const Index = () => {
             <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-8">
               Start analyzing chess positions from images with our AI-powered tool.
             </p>
-            <Link to={isSignedIn ? "/analyze" : "/signup"}>
+            <Link to="/analyze">
               <Button size="lg">
-                {isSignedIn ? "Go to Analyzer" : "Create an Account"}
+                Go to Analyzer
               </Button>
             </Link>
           </motion.div>

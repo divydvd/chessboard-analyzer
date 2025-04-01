@@ -327,7 +327,7 @@ async function analyzeWithOpenAI(base64Image: string, apiKey: string): Promise<A
  */
 export function openPGNOnLichess(pgn: string): void {
   try {
-    console.log("This function is deprecated. Opening PGN handled in ResultsDisplay component.");
+    console.log("Opening PGN on Lichess");
     
     // Extract FEN from the PGN
     const fen = extractFENFromPGN(pgn);
@@ -338,25 +338,20 @@ export function openPGNOnLichess(pgn: string): void {
       const lichessURL = `https://lichess.org/analysis/${encodedFEN}`;
       window.open(lichessURL, '_blank');
     } else {
-      // Fallback to paste page
-      const form = document.createElement('form');
-      form.method = 'POST';
-      form.action = 'https://lichess.org/paste';
-      form.target = '_blank';
-      
-      const input = document.createElement('input');
-      input.type = 'hidden';
-      input.name = 'pgn';
-      input.value = pgn;
-      
-      form.appendChild(input);
-      document.body.appendChild(form);
-      form.submit();
-      document.body.removeChild(form);
+      // Show an error toast if no FEN was found
+      toast({
+        title: "Error opening Lichess",
+        description: "Could not extract a valid FEN from the PGN",
+        variant: "destructive",
+      });
     }
   } catch (error) {
     console.error("Error opening Lichess:", error);
-    throw error;
+    toast({
+      title: "Error opening Lichess",
+      description: error instanceof Error ? error.message : "Unknown error occurred",
+      variant: "destructive",
+    });
   }
 }
 

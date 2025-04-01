@@ -4,7 +4,6 @@ import { motion } from 'framer-motion';
 import { ChevronLeft, Grid3X3 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { UserButton } from '@/components/auth/UserButton';
 import { ImageAnalyzer } from '@/components/ImageAnalyzer';
 import { AdBanner } from '@/components/ads/AdBanner';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -65,7 +64,6 @@ const Analyze = () => {
             Back to Home
           </Link>
           <ThemeToggle />
-          <UserButton />
         </div>
       </header>
 
