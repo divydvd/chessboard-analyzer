@@ -1,16 +1,11 @@
 
-import { useAuth } from "@/components/auth/AuthProvider";
-import { UserButton as ClerkUserButton } from "@clerk/clerk-react";
+import React from 'react';
 
 export function UserButton() {
-  const { isSignedIn } = useAuth();
-
-  if (!isSignedIn) {
-    return <div className="h-8 w-8 rounded-full bg-muted"></div>;
-  }
-
-  // Use Clerk's UserButton for a better user experience
+  // Simple placeholder button with no functionality
   return (
-    <ClerkUserButton afterSignOutUrl="/" />
+    <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
+      <span className="text-xs">U</span>
+    </div>
   );
 }
