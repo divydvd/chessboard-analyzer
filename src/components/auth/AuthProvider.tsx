@@ -34,7 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return (
     <AuthContext.Provider value={{ 
       isSignedIn: !!isSignedIn, 
-      isLoaded: isLoaded, 
+      isLoaded, 
       signIn, 
       signOut: () => signOut() 
     }}>

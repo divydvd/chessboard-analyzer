@@ -26,8 +26,7 @@ const Signup = () => {
           </div>
           
           <div className="bg-card border rounded-lg shadow-sm p-6">
-            {/* Use the routing prop to ensure proper navigation */}
-            <SignUp redirectUrl="/analyze" routing="path" path="/signup" />
+            <SignUp redirectUrl="/analyze" />
           </div>
           
           <div className="text-center mt-6">
