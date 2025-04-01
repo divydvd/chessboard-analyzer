@@ -26,7 +26,17 @@ const Signup = () => {
           </div>
           
           <div className="bg-card border rounded-lg shadow-sm p-6">
-            <SignUp />
+            {/* Use the routing prop to ensure proper navigation */}
+            <SignUp redirectUrl="/analyze" routing="path" path="/signup" />
+          </div>
+          
+          <div className="text-center mt-6">
+            <p className="text-muted-foreground">
+              Already have an account?{' '}
+              <Link to="/login" className="text-primary hover:underline">
+                Sign in
+              </Link>
+            </p>
           </div>
         </div>
       </main>

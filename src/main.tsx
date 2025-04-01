@@ -34,6 +34,9 @@ createRoot(document.getElementById("root")!).render(
         logoBox: 'dark:text-white',
         identityPreviewEditButton: 'dark:text-white',
         badge: 'dark:text-white/70',
+        rootBox: 'bg-background text-foreground',
+        card: 'bg-card text-card-foreground border border-border shadow-sm',
+        navbar: 'bg-background border-b border-border',
       },
       variables: {
         colorPrimary: 'hsl(var(--primary))',
@@ -59,7 +62,8 @@ createRoot(document.getElementById("root")!).render(
           subtitle: "to get started with ChessVision"
         }
       }
-    }}>
+    }}
+  >
     <App />
   </ClerkProvider>
 );

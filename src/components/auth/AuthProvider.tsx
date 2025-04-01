@@ -23,14 +23,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { isSignedIn, isLoaded } = useUser();
   const { signOut } = useClerkAuth();
   
-  // This is a placeholder since Clerk handles the actual sign-in
+  // This is a placeholder since Clerk handles the actual sign-in via its components
   const signIn = () => {
     console.log("Sign in should be handled by Clerk UI components");
+    // We'll redirect to the /login page
+    window.location.href = "/login";
   };
 
+  // Provide the auth context to the rest of the app
   return (
     <AuthContext.Provider value={{ 
-      isSignedIn: isSignedIn || false, 
+      isSignedIn: !!isSignedIn, 
       isLoaded: isLoaded, 
       signIn, 
       signOut: () => signOut() 
