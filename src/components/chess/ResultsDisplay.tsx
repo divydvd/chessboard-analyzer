@@ -45,28 +45,18 @@ export function ResultsDisplay({ pgn, onReset }: ResultsDisplayProps) {
         console.log("Opening Lichess with URL:", lichessURL);
         window.open(lichessURL, '_blank');
       } else {
-        // If no FEN found, use the paste page as fallback
-        console.log("No FEN found, redirecting to paste page");
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = 'https://lichess.org/paste';
-        form.target = '_blank';
-        
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = 'pgn';
-        input.value = pgn;
-        
-        form.appendChild(input);
-        document.body.appendChild(form);
-        form.submit();
-        document.body.removeChild(form);
+        console.log("No FEN found in PGN:", pgn);
+        toast({
+          title: "FEN Missing",
+          description: "Could not extract a valid FEN from the PGN",
+          variant: "destructive"
+        });
       }
     } catch (err) {
       console.error('Failed to open Lichess:', err);
       toast({
         title: "Lichess Error",
-        description: "Failed to open the position on Lichess. Try copying the PGN and importing manually.",
+        description: "Failed to open the position on Lichess",
         variant: "destructive"
       });
     }
