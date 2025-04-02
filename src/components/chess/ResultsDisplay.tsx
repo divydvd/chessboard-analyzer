@@ -33,7 +33,17 @@ export function ResultsDisplay({ pgn, onReset }: ResultsDisplayProps) {
 
   const analyzeOnLichess = () => {
     try {
-      // Extract FEN directly
+      // First check if the provided text is already in FEN format
+      const isFenPattern = /^([rnbqkpRNBQKP1-8]+\/){7}[rnbqkpRNBQKP1-8]+\s[wb]\s[KQkq-]+\s[a-h\-][1-8\-]/.test(pgn.trim());
+      
+      if (isFenPattern) {
+        // If it's a FEN string, use it directly
+        const encodedFEN = pgn.trim().replace(/\s+/g, '_');
+        window.open(`https://lichess.org/analysis/${encodedFEN}`, '_blank');
+        return;
+      }
+      
+      // Try to extract FEN from PGN
       const fen = extractFENFromPGN(pgn);
       console.log("Extracted FEN before opening Lichess:", fen);
       
@@ -46,10 +56,36 @@ export function ResultsDisplay({ pgn, onReset }: ResultsDisplayProps) {
         window.open(lichessURL, '_blank');
       } else {
         console.log("No FEN found in PGN:", pgn);
+        
+        // If no FEN found, redirect to lichess.org/paste instead
+        const lichessPasteURL = "https://lichess.org/paste";
+        
+        // Create a form element
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = lichessPasteURL;
+        form.target = '_blank';
+        
+        // Create an input for the PGN
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'pgn';
+        input.value = pgn;
+        
+        // Add the input to the form
+        form.appendChild(input);
+        
+        // Add the form to the body and submit it
+        document.body.appendChild(form);
+        form.submit();
+        
+        // Clean up
+        document.body.removeChild(form);
+        
         toast({
-          title: "FEN Missing",
-          description: "Could not extract a valid FEN from the PGN",
-          variant: "destructive"
+          title: "Using Lichess Import",
+          description: "No FEN found, redirecting to Lichess paste page",
+          variant: "default"
         });
       }
     } catch (err) {
@@ -61,6 +97,9 @@ export function ResultsDisplay({ pgn, onReset }: ResultsDisplayProps) {
       });
     }
   };
+
+  // Extract first few characters of PGN for display
+  const pgnPreview = pgn.length > 80 ? pgn.substring(0, 80) + '...' : pgn;
 
   return (
     <div>
