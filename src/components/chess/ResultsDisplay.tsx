@@ -33,58 +33,61 @@ export function ResultsDisplay({ pgn, onReset }: ResultsDisplayProps) {
 
   const analyzeOnLichess = () => {
     try {
-      // First check if the provided text is already in FEN format
+      console.log("Starting Lichess analysis with PGN:", pgn);
+      
+      // First, check if the provided text is already in FEN format
       const isFenPattern = /^([rnbqkpRNBQKP1-8]+\/){7}[rnbqkpRNBQKP1-8]+\s[wb]\s[KQkq-]+\s[a-h\-][1-8\-]/.test(pgn.trim());
       
       if (isFenPattern) {
-        // If it's a FEN string, use it directly
-        const encodedFEN = pgn.trim().replace(/\s+/g, '_');
-        window.open(`https://lichess.org/analysis/${encodedFEN}`, '_blank');
+        console.log("Direct FEN pattern detected");
+        const encodedFEN = encodeURIComponent(pgn.trim());
+        const lichessURL = `https://lichess.org/analysis/${encodedFEN}`;
+        console.log("Opening direct FEN URL:", lichessURL);
+        window.open(lichessURL, '_blank');
         return;
       }
       
       // Try to extract FEN from PGN
       const fen = extractFENFromPGN(pgn);
-      console.log("Extracted FEN before opening Lichess:", fen);
+      console.log("Extracted FEN result:", fen);
       
       if (fen) {
-        // Encode the FEN for URL (replace spaces with underscores)
-        const encodedFEN = fen.replace(/\s+/g, '_');
+        // Encode the FEN for URL
+        const encodedFEN = encodeURIComponent(fen);
         const lichessURL = `https://lichess.org/analysis/${encodedFEN}`;
         
-        console.log("Opening Lichess with URL:", lichessURL);
+        console.log("Opening Lichess with FEN URL:", lichessURL);
         window.open(lichessURL, '_blank');
       } else {
-        console.log("No FEN found in PGN:", pgn);
+        console.log("No FEN found, submitting full PGN to Lichess paste");
         
-        // If no FEN found, redirect to lichess.org/paste instead
-        const lichessPasteURL = "https://lichess.org/paste";
-        
-        // Create a form element
+        // Use Lichess Import feature
         const form = document.createElement('form');
         form.method = 'POST';
-        form.action = lichessPasteURL;
+        form.action = 'https://lichess.org/paste';
         form.target = '_blank';
         
-        // Create an input for the PGN
+        // Create input for PGN
         const input = document.createElement('input');
         input.type = 'hidden';
         input.name = 'pgn';
         input.value = pgn;
         
-        // Add the input to the form
         form.appendChild(input);
-        
-        // Add the form to the body and submit it
         document.body.appendChild(form);
+        
+        // Submit the form
+        console.log("Submitting form to Lichess paste");
         form.submit();
         
         // Clean up
-        document.body.removeChild(form);
+        setTimeout(() => {
+          document.body.removeChild(form);
+        }, 100);
         
         toast({
           title: "Using Lichess Import",
-          description: "No FEN found, redirecting to Lichess paste page",
+          description: "Redirecting to Lichess with full PGN data",
           variant: "default"
         });
       }
@@ -97,9 +100,6 @@ export function ResultsDisplay({ pgn, onReset }: ResultsDisplayProps) {
       });
     }
   };
-
-  // Extract first few characters of PGN for display
-  const pgnPreview = pgn.length > 80 ? pgn.substring(0, 80) + '...' : pgn;
 
   return (
     <div>
